@@ -1,0 +1,29 @@
+[project]
+name = "mead"
+version = "0.1.0"
+description = "MEAD: Modeling Environment for Analysis of Dynamics"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "black>=25.11.0",
+    "typer>=0.20.0",
+]
+
+[project.scripts]
+praxis = "mead.cli:cli"
+
+[tool.hatch.build.targets.wheel]
+include = [
+    "mead/**/*",
+    "pyproject.toml",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "mead/**/*",
+    "pyproject.toml",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
