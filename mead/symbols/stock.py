@@ -27,6 +27,7 @@ class Stock:
         self.total_in = sum(f.result for f in self.inflows)
         self.total_out = sum(f.result for f in self.outflows)
         self.value += (self.total_in - self.total_out) * dt
+        logger.info(f"Stock(name={self.name})={self.value})")
         # stocks can't be negative
         if self.value < 0:
             logger.debug(f"{self} reached zero")

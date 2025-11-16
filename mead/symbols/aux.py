@@ -1,5 +1,8 @@
 from collections.abc import Callable
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Auxiliary:
     def __init__(self, name: str, formula: Callable[..., float]):
@@ -7,4 +10,6 @@ class Auxiliary:
         self.formula = formula
 
     def compute(self) -> float:
-        return self.formula()
+        result = self.formula()
+        logger.debug(f"Auxiliary(name={self.name}), compute={result}")
+        return result
