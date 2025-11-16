@@ -12,5 +12,6 @@ class Graph:
         plt.grid(True)
         plt.legend()
         plt.title("Simple Plot")
+        plt.savefig("plot.png")
 
         plt.show()
