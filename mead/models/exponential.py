@@ -4,15 +4,13 @@ from mead.graph import Graph
 
 import numpy as np
 
-initial_value = 1
-
 # Euler method constraints
 # > 1000 steps at dt=0.01 will
 # approach a exp result
 steps = 1000
 dt = 10/steps
 
-quantity = Stock("quantity", initial_value=initial_value)
+quantity = Stock("quantity", initial_value=1)
 growth = Flow("exponential", lambda: quantity.value)
 
 quantity.add_inflow(growth)
@@ -24,6 +22,6 @@ m.add_flow(growth)
 history = m.run(steps=steps, dt=dt)
 
 time = np.linspace(1, 10, steps + 1)
-history["numpy"] = initial_value * np.exp(time)
+history["numpy"] = list(np.exp(time))
 
 Graph().plot(history)
