@@ -7,7 +7,8 @@ predators = Stock("Predators", initial_value=10)
 
 prey_birth_rate = Auxiliary("Prey growth", formula=lambda: 1.2)
 prey_birth_flow = Flow(
-    "Prey births", formula=lambda: prey_birth_rate.compute() * preys.value
+    "Prey births", 
+    formula=lambda: prey_birth_rate.compute() * preys.value
 )
 
 prey_hunt_rate = Auxiliary("Predation rate", lambda: 0.05)
@@ -19,7 +20,7 @@ prey_death_flow = Flow(
 preys.add_inflow(prey_birth_flow)
 preys.add_outflow(prey_death_flow)
 
-predator_death_rate = Auxiliary("Predator death rate", lambda: 1.1)
+predator_death_rate = Auxiliary("Predator death rate", lambda: 1.2)
 predator_deaths = Flow(
     "Predator deaths", formula=lambda: predators.value * predator_death_rate.compute()
 )
@@ -30,10 +31,8 @@ predator_births = Flow(
     lambda: predators.value * (preys.value * predator_birth_rate.compute()),
 )
 
-
 predators.add_inflow(predator_births)
 predators.add_outflow(predator_deaths)
-
 
 m = Model()
 m.add_stock(preys)
