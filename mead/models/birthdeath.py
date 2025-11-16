@@ -1,41 +1,34 @@
 from mead.symbols import Stock, Flow, Auxiliary
 from mead.model import Model
 import mead.graph
+from random import random
 
-# Population
-population = Stock("Population", initial_value=1000)
+# Population...
+population = Stock("Population", initial_value=10_000)
 
 # Rates...
-birth_rate = Auxiliary("birth_rate", lambda: 0.02)
-death_rate = Auxiliary("death_rate", lambda: 0.03)
+birth_rate = Auxiliary("birth_rate", lambda: random())
+death_rate = Auxiliary("death_rate", lambda: random())
 
-# Flow: Flows in to population at birth rate, the rate is per couple
+# Births as rate in population
 births = Flow(
     "births",
     formula=lambda: population.value * birth_rate.compute(),
 )
 population.add_inflow(births)
 
-# Flow: flows out of population at death rate, the rate a constant
+# Deaths as rate in population
 deaths = Flow(
     "deaths",
     formula=lambda: population.value * death_rate.compute(),
 )
 population.add_outflow(deaths)
 
-# Create model
 m = Model()
-m.add_auxiliary(birth_rate)
-m.add_auxiliary(death_rate)
-m.add_flow(births)
-m.add_flow(deaths)
 m.add_stock(population)
+
 # Run simulation
-history = m.run(steps=50, dt=1.0)
+history = m.run(steps=100_000, dt=0.01)
 
 g = mead.graph.Graph()
 g.plot(history)
-
-# Print population over time
-# for h in history["Population"]:
-#    print(h)

@@ -13,6 +13,12 @@ class Model:
 
     def add_stock(self, stock: Stock):
         self.stocks[stock.name] = stock
+        for flow in stock.inflows:
+            if flow.name not in self.flows:
+                self.flows[flow.name] = flow
+        for flow in stock.outflows:
+            if flow.name not in self.flows:
+                self.flows[flow.name] = flow
 
     def add_flow(self, flow: Flow):
         self.flows[flow.name] = flow

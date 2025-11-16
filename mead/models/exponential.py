@@ -17,7 +17,6 @@ quantity.add_inflow(growth)
 
 m = Model()
 m.add_stock(quantity)
-m.add_flow(growth)
 
 history = m.run(steps=steps, dt=dt)
 

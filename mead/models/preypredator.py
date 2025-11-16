@@ -37,10 +37,6 @@ predators.add_outflow(predator_deaths)
 m = Model()
 m.add_stock(preys)
 m.add_stock(predators)
-m.add_flow(prey_birth_flow)
-m.add_flow(prey_death_flow)
-m.add_flow(predator_deaths)
-m.add_flow(predator_births)
 
 history = m.run(steps=7000, dt=0.005)
 
