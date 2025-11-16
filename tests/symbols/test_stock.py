@@ -12,6 +12,7 @@ def test_stock_updates_with_an_inflow():
     stock = Stock("population", 10.0)
     births = Flow("births", lambda: 1.0)
     stock.add_inflow(births)
+    births.compute()
     stock.update(dt=1.0)
     assert stock.value == 11.0
 
@@ -20,6 +21,7 @@ def test_stock_updates_with_an_outflow():
     stock = Stock("population", 10.0)
     deaths = Flow("deaths", lambda: 1.0)
     stock.add_outflow(deaths)
+    deaths.compute()
     stock.update(dt=1.0)
     assert stock.value == 9.0
 
@@ -33,6 +35,9 @@ def test_stock_updates_with_both_inflow_and_outflow():
     deaths = Flow("deaths", lambda: 1.0)
     stock.add_outflow(deaths)
 
+    births.compute()
+    deaths.compute()
+
     stock.update(dt=1.0)
     assert stock.value == 10.00
 
@@ -44,6 +49,9 @@ def test_stock_can_have_multiple_inflows():
 
     stock.add_inflow(births, immigration)
 
+    births.compute()
+    immigration.compute()
+
     stock.update(dt=1.0)
     assert stock.value == 12.0
 
@@ -54,6 +62,9 @@ def test_stock_can_have_multiple_outflows():
     emmigration = Flow("emmigration", lambda: 1.0)
 
     stock.add_outflow(deaths, emmigration)
+
+    deaths.compute()
+    emmigration.compute()
 
     stock.update(dt=1.0)
     assert stock.value == 8.0

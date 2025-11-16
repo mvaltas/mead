@@ -1,5 +1,6 @@
 from mead.symbols import Stock, Flow, Auxiliary
 from mead.model import Model
+import mead.graph
 
 # Population
 population = Stock("Population", initial_value=1000)
@@ -32,6 +33,9 @@ m.add_stock(population)
 # Run simulation
 history = m.run(steps=50, dt=1.0)
 
+g = mead.graph.Graph()
+g.plot(history)
+
 # Print population over time
-for h in history["Population"]:
-    print(h)
+# for h in history["Population"]:
+#    print(h)

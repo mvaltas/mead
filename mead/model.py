@@ -1,11 +1,14 @@
-from mead.symbols import Stock, Flow, Auxiliary
+import logging
+
+from mead.symbols import Stock, Flow
+
+logger = logging.getLogger(__name__)
 
 
 class Model:
     def __init__(self):
         self.stocks = {}
         self.flows = {}
-        self.aux = {}
         self.time = 0
 
     def add_stock(self, stock: Stock):
@@ -14,17 +17,16 @@ class Model:
     def add_flow(self, flow: Flow):
         self.flows[flow.name] = flow
 
-    def add_auxiliary(self, aux: Auxiliary):
-        self.aux[aux.name] = aux
-
     def step(self, dt=1.0):
-        # Update all flows first (they may depend on auxiliaries)
         for f in self.flows.values():
+            logger.debug(f"{f}.compute() START")
             f.compute()
+            logger.debug(f"{f}.compute()={f.result} END")
 
-        # Update all stocks
         for s in self.stocks.values():
+            logger.debug(f"{s}.update({dt}) START")
             s.update(dt)
+            logger.debug(f"{s}.update({dt}) END")
 
         self.time += dt
 
