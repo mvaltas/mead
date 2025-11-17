@@ -22,9 +22,9 @@ class Stock(Historical):
     def add_outflow(self, *flows: Flow):
         self.outflows.extend(flows)
 
-    def update(self, dt: float):
-        total_in = sum(float(f) for f in self.inflows)
-        total_out = sum(float(f) for f in self.outflows)
+    def update(self, dt: float, step: int):
+        total_in = sum(f.compute(step) for f in self.inflows)
+        total_out = sum(f.compute(step) for f in self.outflows)
         self.value += (total_in - total_out) * dt
 
         logger.info(f"Stock(name={self.name!r}, value={self.value!r}))")

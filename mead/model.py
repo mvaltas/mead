@@ -10,6 +10,7 @@ class Model:
         self.stocks = {}
         self.flows = {}
         self.time = 0
+        self.step = 0
 
     def add_stock(self, stock: Stock):
         self.stocks[stock.name] = stock
@@ -20,23 +21,23 @@ class Model:
             if flow.name not in self.flows:
                 self.flows[flow.name] = flow
 
-    def step(self, dt=1.0):
+    def _step(self, dt: float, step: int):
+        self.step = step
         for f in self.flows.values():
-            logger.debug(f"{f}.compute() START")
-            f.compute()
-            logger.debug(f"{f}.compute()={f.result} END")
+            f.compute(step)
+            logger.debug(f"{f}.compute({step})={f.result}")
 
         for s in self.stocks.values():
-            logger.debug(f"{s}.update({dt}) START")
-            s.update(dt)
-            logger.debug(f"{s}.update({dt}) END")
+            s.update(dt, step)
+            logger.debug(f"{s}.update({dt}, {step})")
 
         self.time += dt
 
     def run(self, steps, dt=1.0):
         history = {name: [] for name in self.stocks}
-        for _ in range(steps):
-            self.step(dt)
+        for s in range(steps):
+            logger.debug(f"RUN: step={s}, dt={dt}")
+            self._step(dt, s)
             for name, stock in self.stocks.items():
                 history[name].append(stock.value)
         return history

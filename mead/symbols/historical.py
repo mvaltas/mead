@@ -2,12 +2,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class Historical:
     def __init__(self):
         self.history: list[float] = []
 
     def record(self, value: float):
-        logger.debug(f"{self} appending={value!r}")
+        logger.info(f"{self} appending={value!r}")
         self.history.append(value)
 
     def last(self) -> float:

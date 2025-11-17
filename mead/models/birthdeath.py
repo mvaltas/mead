@@ -11,17 +11,11 @@ birth_rate = Auxiliary("birth_rate", lambda: random())
 death_rate = Auxiliary("death_rate", lambda: random())
 
 # Births as rate in population
-births = Flow(
-    "births",
-    formula=lambda: population.value * birth_rate
-)
+births = Flow("births", formula=lambda: population.value * birth_rate)
 population.add_inflow(births)
 
 # Deaths as rate in population
-deaths = Flow(
-    "deaths",
-    formula=lambda: population.value * death_rate
-)
+deaths = Flow("deaths", formula=lambda: population.value * death_rate)
 population.add_outflow(deaths)
 
 m = Model()

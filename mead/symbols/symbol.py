@@ -1,9 +1,11 @@
 from collections.abc import Callable
+from collections import deque
 from mead.symbols import Historical
 
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class BaseSymbol(Historical):
 
@@ -12,11 +14,15 @@ class BaseSymbol(Historical):
         self.name = name
         self.formula = formula
         self.result: float = 0.0
+        self._last_step: int | None = None
 
-    def compute(self) -> float:
-        if self.formula is not None:
-            self.result = self.formula()
-            logger.debug(f"{self!r}.compute()={self.result}")
+    def compute(self, step: int | None = None) -> float:
+        if step is not None and step == self._last_step:
+            return self.result
+
+        self.result = self.formula() if self.formula else self.result
+        self._last_step = step
+        logger.debug(f"{self!r}.compute(step={step!r})")
         self.record(self.result)
         return float(self.result)
 
@@ -65,3 +71,50 @@ class Constant(BaseSymbol):
         super().__init__(name, lambda: value)
         self.result = value
         self.record(value)
+
+
+class Delay(BaseSymbol):
+
+    def __init__(self, name: str, steps: int, input: BaseSymbol):
+        super().__init__(name, formula=None)
+        self.steps = steps
+        self.buffer = deque([0.0] * steps, maxlen=steps)
+        self.input_symbol = input
+
+    def compute(self, step: int | None = None) -> float:
+        if step is not None and step == self._last_step:
+            return self.result
+
+        self.result = self.buffer[0]
+
+        input_value = self.input_symbol.compute(step)
+        self.buffer.append(input_value)
+
+        self._last_step = step
+        logger.debug(f"{self!r}.compute(step={step!r})")
+        self.record(self.result)
+
+        return float(self.result)
+
+
+class SmoothedAuxiliary(BaseSymbol):
+    def __init__(self, name, input_symbol, tau_steps=10):
+        super().__init__(name)
+        self.input_symbol = input_symbol
+        self.tau = tau_steps
+        self.result = 0.0
+
+    def compute(self, step: int | None =None):
+        if step is not None and step == self._last_step:
+            return self.result
+
+        # target value from input symbol
+        target = float(self.input_symbol.compute(step))
+        # first-order lag toward target
+        self.result += (target - self.result) / self.tau
+
+        self._last_step = step
+        logger.debug(f"{self!r}.compute(step={step!r})")
+        self.record(self.result)
+
+        return float(self.result)

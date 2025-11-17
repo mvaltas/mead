@@ -3,8 +3,8 @@ from mead.symbols import Stock, Flow
 
 def test_stock_with_no_flow_is_constant():
     stock = Stock("test_stock", 10.0)
-    stock.update(dt=1.0)
-    stock.update(dt=1.0)
+    stock.update(dt=1.0, step=0)
+    stock.update(dt=1.0, step=1)
     assert stock.value == 10.0
 
 
@@ -13,7 +13,7 @@ def test_stock_updates_with_an_inflow():
     births = Flow("births", lambda: 1.0)
     stock.add_inflow(births)
     births.compute()
-    stock.update(dt=1.0)
+    stock.update(dt=1.0, step=0)
     assert stock.value == 11.0
 
 
@@ -22,7 +22,7 @@ def test_stock_updates_with_an_outflow():
     deaths = Flow("deaths", lambda: 1.0)
     stock.add_outflow(deaths)
     deaths.compute()
-    stock.update(dt=1.0)
+    stock.update(dt=1.0, step=0)
     assert stock.value == 9.0
 
 
@@ -38,7 +38,7 @@ def test_stock_updates_with_both_inflow_and_outflow():
     births.compute()
     deaths.compute()
 
-    stock.update(dt=1.0)
+    stock.update(dt=1.0, step=0)
     assert stock.value == 10.00
 
 
@@ -52,7 +52,7 @@ def test_stock_can_have_multiple_inflows():
     births.compute()
     immigration.compute()
 
-    stock.update(dt=1.0)
+    stock.update(dt=1.0, step=0)
     assert stock.value == 12.0
 
 
@@ -66,5 +66,5 @@ def test_stock_can_have_multiple_outflows():
     deaths.compute()
     emmigration.compute()
 
-    stock.update(dt=1.0)
+    stock.update(dt=1.0, step=0)
     assert stock.value == 8.0

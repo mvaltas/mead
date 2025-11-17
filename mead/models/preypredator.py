@@ -7,10 +7,7 @@ predators = Stock("Predators", initial_value=10)
 
 prey_birth_rate = Constant("Prey growth", 1.2)
 
-prey_births = Flow(
-    "Prey births", 
-    formula=lambda: prey_birth_rate * preys.value
-)
+prey_births = Flow("Prey births", formula=lambda: prey_birth_rate * preys.value)
 
 prey_hunt_rate = Constant("Predation rate", 0.05)
 prey_deaths = Flow(

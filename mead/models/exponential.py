@@ -8,7 +8,7 @@ import numpy as np
 # > 1000 steps at dt=0.01 will
 # approach a exp result
 steps = 1000
-dt = 10/steps
+dt = 10 / steps
 
 quantity = Stock("quantity", initial_value=1)
 growth = Flow("exponential", lambda: quantity.value)

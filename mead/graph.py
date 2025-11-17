@@ -11,7 +11,7 @@ class Graph:
         plt.ylabel("Y-axis")
         plt.grid(True)
         plt.legend()
-        plt.title("Simple Plot")
+        plt.title("Simulation")
         plt.savefig("plot.png")
 
         plt.show()
