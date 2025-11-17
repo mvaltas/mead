@@ -1,30 +1,30 @@
 import logging
 
 from mead.symbols import Flow
+from mead.symbols import Historical
 
 logger = logging.getLogger(__name__)
 
 
-class Stock:
+class Stock(Historical):
     def __init__(self, name: str, initial_value: float = 0.0):
+        super().__init__()
         self.name = name
         self.initial_value = initial_value
         self.value = self.initial_value
         self.inflows: list[Flow] = []
         self.outflows: list[Flow] = []
-        self.history: list[float] = []
+        self.record(self.value)
 
     def add_inflow(self, *flows: Flow):
-        for f in flows:
-            self.inflows.append(f)
+        self.inflows.extend(flows)
 
     def add_outflow(self, *flows: Flow):
-        for f in flows:
-            self.outflows.append(f)
+        self.outflows.extend(flows)
 
     def update(self, dt: float):
-        total_in = sum(f.result for f in self.inflows)
-        total_out = sum(f.result for f in self.outflows)
+        total_in = sum(float(f) for f in self.inflows)
+        total_out = sum(float(f) for f in self.outflows)
         self.value += (total_in - total_out) * dt
 
         logger.info(f"Stock(name={self.name!r}, value={self.value!r}))")
@@ -32,7 +32,7 @@ class Stock:
         if self.value < 0:
             logger.debug(f"{self} reached zero")
             self.value = 0
-        self.history.append(self.value)
+        self.record(self.value)
         return self.value
 
     def __repr__(self):

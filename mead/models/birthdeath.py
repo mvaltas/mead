@@ -13,14 +13,14 @@ death_rate = Auxiliary("death_rate", lambda: random())
 # Births as rate in population
 births = Flow(
     "births",
-    formula=lambda: population.value * birth_rate.compute(),
+    formula=lambda: population.value * birth_rate
 )
 population.add_inflow(births)
 
 # Deaths as rate in population
 deaths = Flow(
     "deaths",
-    formula=lambda: population.value * death_rate.compute(),
+    formula=lambda: population.value * death_rate
 )
 population.add_outflow(deaths)
 
@@ -28,7 +28,7 @@ m = Model()
 m.add_stock(population)
 
 # Run simulation
-history = m.run(steps=100_000, dt=0.01)
+history = m.run(steps=10_000, dt=0.01)
 
 g = mead.graph.Graph()
 g.plot(history)
