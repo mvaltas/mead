@@ -11,5 +11,8 @@ class Auxiliary:
 
     def compute(self) -> float:
         result = self.formula()
-        logger.debug(f"Auxiliary(name={self.name}), compute={result}")
+        logger.debug(f"{self!r}, compute={result}")
         return result
+
+    def __repr__(self) -> str:
+        return f"Auxiliary(name={self.name!r}, formula={self.formula!r})"

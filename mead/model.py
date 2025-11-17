@@ -1,6 +1,6 @@
 import logging
 
-from mead.symbols import Stock, Flow
+from mead.symbols import Stock
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +19,6 @@ class Model:
         for flow in stock.outflows:
             if flow.name not in self.flows:
                 self.flows[flow.name] = flow
-
-    def add_flow(self, flow: Flow):
-        self.flows[flow.name] = flow
 
     def step(self, dt=1.0):
         for f in self.flows.values():

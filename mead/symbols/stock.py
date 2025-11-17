@@ -12,8 +12,7 @@ class Stock:
         self.value = self.initial_value
         self.inflows: list[Flow] = []
         self.outflows: list[Flow] = []
-        self.total_in: float = 0.0
-        self.total_out: float = 0.0
+        self.history: list[float] = []
 
     def add_inflow(self, *flows: Flow):
         for f in flows:
@@ -24,14 +23,16 @@ class Stock:
             self.outflows.append(f)
 
     def update(self, dt: float):
-        self.total_in = sum(f.result for f in self.inflows)
-        self.total_out = sum(f.result for f in self.outflows)
-        self.value += (self.total_in - self.total_out) * dt
-        logger.info(f"Stock(name={self.name})={self.value})")
+        total_in = sum(f.result for f in self.inflows)
+        total_out = sum(f.result for f in self.outflows)
+        self.value += (total_in - total_out) * dt
+
+        logger.info(f"Stock(name={self.name!r}, value={self.value!r}))")
         # stocks can't be negative
         if self.value < 0:
             logger.debug(f"{self} reached zero")
             self.value = 0
+        self.history.append(self.value)
         return self.value
 
     def __repr__(self):
@@ -40,7 +41,5 @@ class Stock:
             f"initial_value={self.initial_value}, "
             f"value={self.value}, "
             f"inflows={self.inflows}, "
-            f"outflows={self.outflows}, "
-            f"total_in={self.total_in}, "
-            f"total_out={self.total_out})"
+            f"outflows={self.outflows})"
         )
