@@ -24,14 +24,13 @@ class Stock(Historical):
 
     def net_flow(self, step: int):
         total_in = sum(f.compute(step) for f in self.inflows)
-        logger.debug(f"{self}, total_inflows={total_in}")
         total_out = sum(f.compute(step) for f in self.outflows)
-        logger.debug(f"{self}, total_outflows={total_out}")
         d = total_in - total_out
-        logger.debug(f"{self}, delta={d}")
+        logger.debug(f"{self} total_inflows={total_in} total_outflows={total_out} delta={d}")
         return d
 
     def __setattr__(self, key, val):
+        # clamp stock at zero
         if key == "value":
             val = max(0, val)
         super().__setattr__(key, val)
@@ -46,4 +45,4 @@ class Stock(Historical):
         )
 
     def __str__(self):
-        return f"{__name__}({self.name}): "
+        return f"{self.__class__.__name__}({self.name})"
