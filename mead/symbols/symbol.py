@@ -6,29 +6,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class Computable():
+
+class Computable:
     def compute(self, step: int | None = None) -> float:
         raise Exception("Not implemented")
-
-
-class BaseSymbol(Historical, Computable):
-
-    def __init__(self, name: str, formula: Callable[..., float] | None = None):
-        super().__init__()
-        self.name = name
-        self.formula = formula
-        self.result: float = 0.0
-        self._last_step: int | None = None
-
-    def compute(self, step: int | None = None) -> float:
-        if step is not None and step == self._last_step:
-            return self.result
-
-        self.result = self.formula() if self.formula else self.result
-        self._last_step = step
-        logger.debug(f"{self!r}.compute(step={step!r})")
-        self.record(self.result)
-        return float(self.result)
 
     def __float__(self):
         return self.compute()
@@ -56,6 +37,26 @@ class BaseSymbol(Historical, Computable):
 
     def __rtruediv__(self, other):
         return other / float(self)
+
+
+class BaseSymbol(Historical, Computable):
+
+    def __init__(self, name: str, formula: Callable[..., float] | None = None):
+        super().__init__()
+        self.name = name
+        self.formula = formula
+        self.result: float = 0.0
+        self._last_step: int | None = None
+
+    def compute(self, step: int | None = None) -> float:
+        if step is not None and step == self._last_step:
+            return self.result
+
+        self.result = self.formula() if self.formula else self.result
+        self._last_step = step
+        logger.debug(f"{self!r}.compute(step={step!r})")
+        self.record(self.result)
+        return float(self.result)
 
     def __repr__(self):
         return f"{self.__class__.__name__}(name={self.name!r}, result={self.result})"
@@ -108,7 +109,7 @@ class SmoothedAuxiliary(BaseSymbol):
         self.tau = tau_steps
         self.result = 0.0
 
-    def compute(self, step: int | None =None):
+    def compute(self, step: int | None = None):
         if step is not None and step == self._last_step:
             return self.result
 

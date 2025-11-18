@@ -6,7 +6,7 @@ from mead.graph import Graph
 # comparing with our solution
 temperature = ms.Stock("Temperature", initial_value=100)
 constant = ms.Constant("Constant", 0.5)
-cooling = ms.Flow("Cooling", formula = lambda: temperature.value * constant)
+cooling = ms.Flow("Cooling", formula=lambda: temperature.value * constant)
 temperature.add_outflow(cooling)
 
 m = Model()
