@@ -6,8 +6,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+class Computable():
+    def compute(self, step: int | None = None) -> float:
+        raise Exception("Not implemented")
 
-class BaseSymbol(Historical):
+
+class BaseSymbol(Historical, Computable):
 
     def __init__(self, name: str, formula: Callable[..., float] | None = None):
         super().__init__()

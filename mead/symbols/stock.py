@@ -1,6 +1,6 @@
 import logging
 
-from mead.symbols import Flow
+from mead.symbols import BaseSymbol
 from mead.symbols import Historical
 
 logger = logging.getLogger(__name__)
@@ -12,14 +12,14 @@ class Stock(Historical):
         self.name = name
         self.initial_value = initial_value
         self.value = self.initial_value
-        self.inflows: list[Flow] = []
-        self.outflows: list[Flow] = []
+        self.inflows: list[BaseSymbol] = []
+        self.outflows: list[BaseSymbol] = []
         self.record(self.value)
 
-    def add_inflow(self, *flows: Flow):
+    def add_inflow(self, *flows: BaseSymbol):
         self.inflows.extend(flows)
 
-    def add_outflow(self, *flows: Flow):
+    def add_outflow(self, *flows: BaseSymbol):
         self.outflows.extend(flows)
 
     def update(self, dt: float, step: int):
