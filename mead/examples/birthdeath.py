@@ -18,11 +18,11 @@ population.add_inflow(births)
 deaths = ms.Flow("deaths", formula=lambda: population.value * death_rate)
 population.add_outflow(deaths)
 
-m = Model()
+m = Model(steps=10_000, dt=0.01)
 m.add_stock(population)
 
 # Run simulation
-history = m.run(steps=10_000, dt=0.01)
+history = m.run()
 
 g = mead.graph.Graph()
 g.plot(history)

@@ -32,10 +32,8 @@ predator_births = Flow(
 predators.add_inflow(predator_births)
 predators.add_outflow(predator_deaths)
 
-m = Model()
-m.add_stock(preys)
-m.add_stock(predators)
+m = Model(steps=7000, dt=0.005, stocks = [preys, predators])
 
-history = m.run(steps=7000, dt=0.005)
+history = m.run()
 
 Graph().plot(history)

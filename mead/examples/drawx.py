@@ -4,7 +4,7 @@ from mead.graph import Graph
 
 constant = ms.Constant("Constant input", 1)
 
-m = Model()
+m = Model(steps=13, dt=1)
 
 stock_A = ms.Stock("StockA", initial_value=0)
 delayed_inflow = ms.Delay("delayed inflow", steps=3, input=constant)
@@ -30,6 +30,6 @@ m.add_stock(stock_B)
 m.add_stock(stock_C)
 m.add_stock(stock_D)
 
-history = m.run(steps=13, dt=1)
+history = m.run()
 
 Graph().plot(history)

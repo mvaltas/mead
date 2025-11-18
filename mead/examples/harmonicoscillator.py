@@ -2,15 +2,11 @@ import mead.symbols as ms
 from mead.model import Model
 from mead.graph import Graph
 
-# Signed stock
+# Signed stock (not recommended)
 class SignedStock(ms.Stock):
-    def update(self, dt: float, step):
-        total_in = sum(f.compute(step) for f in self.inflows)
-        total_out = sum(f.compute(step) for f in self.outflows)
-        self.value += (total_in - total_out) * dt
-        self.result = self.value
-        self.record(self.value)
-        return self.value
+    def __setattr__(self, key, val):
+        # bypass zero clamp in default stock
+        object.__setattr__(self, key, val)
 
 
 m = ms.Constant("m", 1.0)  # mass
@@ -34,11 +30,6 @@ dv = ms.Flow(
 x.add_inflow(dx)
 v.add_inflow(dv)
 
+mdl = Model(steps=1000, dt=0.01, stocks = [x, v])
 
-mdl = Model()
-mdl.add_stock(x)
-mdl.add_stock(v)
-
-history = mdl.run(steps=1000, dt=0.01)
-
-Graph().plot(history)
+Graph().plot(mdl.run())

@@ -9,9 +9,9 @@ constant = ms.Constant("Constant", 0.5)
 cooling = ms.Flow("Cooling", formula=lambda: temperature.value * constant)
 temperature.add_outflow(cooling)
 
-m = Model()
+m = Model(steps=8, dt=0.5)
 m.add_stock(temperature)
 
-history = m.run(8, dt=0.5)
+history = m.run()
 
 Graph().plot(history)

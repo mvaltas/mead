@@ -2,21 +2,23 @@ from pytest import approx
 import mead.symbols as ms
 from mead.model import Model
 
+import logging
 
 # Checks Euler's method for a cooling ODE
 # ref: https://www.iseesystems.com/resources/help/v10/Content/Reference/Integration%20methods/Euler's_method.htm
-def test_cooling_eulers_method():
+def test_cooling_eulers_method(caplog):
+    caplog.set_level(logging.DEBUG)
     temperature = ms.Stock("Temperature", initial_value=100)
     cooling = ms.Flow("Cooling", formula=lambda: temperature.value * 0.5)
     temperature.add_outflow(cooling)
-    m = Model()
-    m.add_stock(temperature)
     dt = 0.5
-    m.run(steps=9, dt=dt)
+    m = Model(steps = 9, dt = dt, stocks = [temperature])
+    m.run()
+
     # temperature decay...
-    assert temperature.history[0] == approx(100)
-    assert temperature.history[1] == approx(75.00)
-    assert temperature.history[2] == approx(56.25)
+    assert temperature.history[0] == approx(100, 0.01)
+    assert temperature.history[1] == approx(75.00, 0.01)
+    assert temperature.history[2] == approx(56.25, 0.01)
     assert temperature.history[3] == approx(42.19, 0.01)
     assert temperature.history[4] == approx(31.64, 0.01)
     assert temperature.history[5] == approx(23.73, 0.01)

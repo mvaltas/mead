@@ -19,10 +19,10 @@ stock_two.add_inflow(flow_one_two)
 stock_two.add_outflow(sink)
 
 
-m = Model()
+m = Model(steps=1000, dt=0.01)
 m.add_stock(stock_one)
 m.add_stock(stock_two)
 
-history = m.run(steps=1000, dt=0.01)
+history = m.run()
 
 Graph().plot(history)

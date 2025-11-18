@@ -22,18 +22,20 @@ class Stock(Historical):
     def add_outflow(self, *flows: BaseSymbol):
         self.outflows.extend(flows)
 
-    def update(self, dt: float, step: int):
-        total_in = sum(f.compute(step) for f in self.inflows)
+    def net_flow(self, step: int):
+        total_in  = sum(f.compute(step) for f in self.inflows)
+        logger.debug(f"{self}, total_inflows={total_in}")
         total_out = sum(f.compute(step) for f in self.outflows)
-        self.value += (total_in - total_out) * dt
+        logger.debug(f"{self}, total_outflows={total_out}")
+        d = total_in - total_out
+        logger.debug(f"{self}, delta={d}")
+        return d
 
-        logger.debug(f"Stock(name={self.name!r}, value={self.value!r}))")
-        # stocks can't be negative
-        if self.value < 0:
-            logger.debug(f"{self} reached zero")
-            self.value = 0
-        self.record(self.value)
-        return self.value
+
+    def __setattr__(self, key, val):
+        if key == "value":
+            val = max(0, val)
+        super().__setattr__(key, val)
 
     def __repr__(self):
         return (
@@ -43,3 +45,6 @@ class Stock(Historical):
             f"inflows={self.inflows}, "
             f"outflows={self.outflows})"
         )
+
+    def __str__(self):
+        return f"{__name__}({self.name}): "

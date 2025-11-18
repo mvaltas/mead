@@ -2,7 +2,7 @@ import mead.symbols as ms
 from mead.model import Model
 from mead.graph import Graph
 
-m = Model()
+m = Model(steps=360)
 
 temp = ms.Stock("Temperature", initial_value=70)
 
@@ -42,7 +42,7 @@ temp.add_outflow(temp_lost_to_env)
 
 m.add_stock(temp)
 
-history = m.run(steps=360, dt=1)
+history = m.run()
 
 # history["heater_on"] = [h * 1 for h in heater_active.history]
 

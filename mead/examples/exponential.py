@@ -15,10 +15,10 @@ growth = Flow("exponential", lambda: quantity.value)
 
 quantity.add_inflow(growth)
 
-m = Model()
+m = Model(steps=steps, dt=dt)
 m.add_stock(quantity)
 
-history = m.run(steps=steps, dt=dt)
+history = m.run()
 
 time = np.linspace(1, 10, steps + 1)
 history["numpy"] = list(np.exp(time))
