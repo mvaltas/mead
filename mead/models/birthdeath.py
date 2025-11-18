@@ -1,21 +1,21 @@
-from mead.symbols import Stock, Flow, Auxiliary
+import mead.symbols as ms
 from mead.model import Model
 import mead.graph
 from random import random
 
 # Population...
-population = Stock("Population", initial_value=10_000)
+population = ms.Stock("Population", initial_value=10_000)
 
 # Rates...
-birth_rate = Auxiliary("birth_rate", lambda: random())
-death_rate = Auxiliary("death_rate", lambda: random())
+birth_rate = ms.Auxiliary("birth_rate", lambda: random())
+death_rate = ms.Auxiliary("death_rate", lambda: random())
 
 # Births as rate in population
-births = Flow("births", formula=lambda: population.value * birth_rate)
+births = ms.Flow("births", formula=lambda: population.value * birth_rate)
 population.add_inflow(births)
 
 # Deaths as rate in population
-deaths = Flow("deaths", formula=lambda: population.value * death_rate)
+deaths = ms.Flow("deaths", formula=lambda: population.value * death_rate)
 population.add_outflow(deaths)
 
 m = Model()
