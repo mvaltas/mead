@@ -63,3 +63,11 @@ class Model:
             for name, stock in self.stocks.items():
                 history[name].append(stock.value)
         return history
+
+    @property
+    def step(self):
+        return self._step_counter
+
+    @property
+    def time(self):
+        return self._time_keeper

@@ -6,7 +6,7 @@ from mead.symbols import Historical
 logger = logging.getLogger(__name__)
 
 
-class Stock(Historical):
+class Stock:
     def __init__(self, name: str, initial_value: float = 0.0):
         super().__init__()
         self.name = name
@@ -14,7 +14,15 @@ class Stock(Historical):
         self.value = self.initial_value
         self.inflows: list[BaseSymbol] = []
         self.outflows: list[BaseSymbol] = []
+        self._rec = Historical()
         self.record(self.value)
+
+    def record(self, value):
+        self._rec.record(value)
+
+    @property
+    def history(self):
+        return self._rec.history
 
     def add_inflow(self, *flows: BaseSymbol):
         self.inflows.extend(flows)

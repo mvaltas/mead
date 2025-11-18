@@ -1,7 +1,6 @@
 from .historical import Historical
 from .symbol import (
     BaseSymbol,
-    Flow,
     Auxiliary,
     Constant,
     Delay,
@@ -10,15 +9,17 @@ from .symbol import (
 )
 
 from .stock import Stock
+from .flows import Flow, GoalFlow
 
 __all__ = [
-    "Historical",
     "BaseSymbol",
+    "Historical",
     "Flow",
     "Auxiliary",
     "Constant",
     "Delay",
     "SmoothedAuxiliary",
     "Computable",
+    "GoalFlow",
     "Stock",
 ]

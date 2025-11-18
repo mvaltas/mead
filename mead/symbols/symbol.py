@@ -39,7 +39,7 @@ class Computable:
         return other / float(self)
 
 
-class BaseSymbol(Historical, Computable):
+class BaseSymbol(Computable):
 
     def __init__(self, name: str, formula: Callable[..., float] | None = None):
         super().__init__()
@@ -47,6 +47,14 @@ class BaseSymbol(Historical, Computable):
         self.formula = formula
         self.result: float = 0.0
         self._last_step: int | None = None
+        self._rec = Historical()
+
+    def record(self, value):
+        self._rec.record(value)
+
+    @property
+    def history(self):
+        return self._rec.history
 
     def compute(self, step: int | None = None) -> float:
         if step is not None and step == self._last_step:
@@ -60,10 +68,6 @@ class BaseSymbol(Historical, Computable):
 
     def __repr__(self):
         return f"{self.__class__.__name__}(name={self.name!r}, result={self.result})"
-
-
-class Flow(BaseSymbol):
-    pass
 
 
 class Auxiliary(BaseSymbol):
