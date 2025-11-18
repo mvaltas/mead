@@ -27,7 +27,7 @@ class Stock(Historical):
         total_out = sum(f.compute(step) for f in self.outflows)
         self.value += (total_in - total_out) * dt
 
-        logger.info(f"Stock(name={self.name!r}, value={self.value!r}))")
+        logger.debug(f"Stock(name={self.name!r}, value={self.value!r}))")
         # stocks can't be negative
         if self.value < 0:
             logger.debug(f"{self} reached zero")

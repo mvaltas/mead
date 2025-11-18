@@ -36,7 +36,7 @@ class Model:
     def run(self, steps, dt=1.0):
         history = {name: [] for name in self.stocks}
         for s in range(steps):
-            logger.debug(f"RUN: step={s}, dt={dt}")
+            logger.info(f"RUN: step={s}, dt={dt}")
             self._step(dt, s)
             for name, stock in self.stocks.items():
                 history[name].append(stock.value)
