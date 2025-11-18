@@ -34,7 +34,6 @@ def test_stock_updates_with_both_inflow_and_outflow():
     deaths = Flow("deaths", lambda: 1.0)
     stock.add_outflow(deaths)
 
-
     delta = stock.net_flow(step=0)
     assert stock.value + delta == 10.00
 

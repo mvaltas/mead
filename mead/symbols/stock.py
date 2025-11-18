@@ -23,14 +23,13 @@ class Stock(Historical):
         self.outflows.extend(flows)
 
     def net_flow(self, step: int):
-        total_in  = sum(f.compute(step) for f in self.inflows)
+        total_in = sum(f.compute(step) for f in self.inflows)
         logger.debug(f"{self}, total_inflows={total_in}")
         total_out = sum(f.compute(step) for f in self.outflows)
         logger.debug(f"{self}, total_outflows={total_out}")
         d = total_in - total_out
         logger.debug(f"{self}, delta={d}")
         return d
-
 
     def __setattr__(self, key, val):
         if key == "value":

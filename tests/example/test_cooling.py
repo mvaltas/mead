@@ -4,6 +4,7 @@ from mead.model import Model
 
 import logging
 
+
 # Checks Euler's method for a cooling ODE
 # ref: https://www.iseesystems.com/resources/help/v10/Content/Reference/Integration%20methods/Euler's_method.htm
 def test_cooling_eulers_method(caplog):
@@ -12,7 +13,7 @@ def test_cooling_eulers_method(caplog):
     cooling = ms.Flow("Cooling", formula=lambda: temperature.value * 0.5)
     temperature.add_outflow(cooling)
     dt = 0.5
-    m = Model(steps = 9, dt = dt, stocks = [temperature])
+    m = Model(steps=9, dt=dt, stocks=[temperature])
     m.run()
 
     # temperature decay...

@@ -4,6 +4,7 @@ from mead.symbols import Stock
 
 logger = logging.getLogger(__name__)
 
+
 class EulerSolver:
     def __init__(self, dt: float):
         self.dt = dt
