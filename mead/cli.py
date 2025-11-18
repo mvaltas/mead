@@ -33,13 +33,13 @@ def version():
 
 
 @cli.command()
-def run(model_name: str):
-    importlib.import_module(f"mead.models.{model_name}")
+def example(model_name: str):
+    importlib.import_module(f"mead.examples.{model_name}")
 
 
 @cli.command()
 def list():
-    specs = importlib.util.find_spec("mead.models")
+    specs = importlib.util.find_spec("mead.examples")
     if specs is not None and specs.submodule_search_locations is not None:
         location = specs.submodule_search_locations[0]
         model_loc = Path(location)
