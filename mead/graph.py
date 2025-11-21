@@ -12,6 +12,6 @@ class Graph:
         plt.grid(True)
         plt.legend()
         plt.title("Simulation")
-        plt.savefig("plot.png")
+        #plt.savefig("plot.png")
 
         plt.show()
