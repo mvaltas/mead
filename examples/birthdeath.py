@@ -1,5 +1,5 @@
 import mead.symbols as ms
-from mead.model import Model
+from mead.old_model import Model
 import mead.graph
 from random import random
 

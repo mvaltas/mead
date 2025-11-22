@@ -1,5 +1,5 @@
 from mead.symbols import Stock, Flow, Constant, GoalFlow
-from mead.model import Model
+from mead.old_model import Model
 from mead.graph import Graph
 
 preys = Stock("Preys", initial_value=40)

@@ -1,5 +1,5 @@
 from mead.symbols import Stock, Flow
-from mead.model import Model
+from mead.old_model import Model
 from mead.graph import Graph
 
 stock_one = Stock("stock one", initial_value=0)

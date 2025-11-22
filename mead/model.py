@@ -1,73 +1,101 @@
-import logging
+"""Model represents a complete system dynamics simulation."""
 
-from mead.solvers import EulerSolver
-from mead.symbols import Stock
+import pandas as pd
+import matplotlib.pyplot as plt
+from typing import Literal
 
-logger = logging.getLogger(__name__)
+from .stock import Stock
+from .solver import Solver, EulerSolver, RK4Solver
+
+
+IntegrationMethod = Literal["euler", "rk4"]
 
 
 class Model:
-    def __init__(
-        self,
-        steps: int,
-        dt: float = 1.0,
-        solver_cls=EulerSolver,
-        stocks: list[Stock] = [],
-    ):
-        self.stocks = {}
-        self.flows = {}
-        self.steps = steps
+    """
+    A Model contains stocks and flows and runs simulations.
+
+    The model uses numerical integration to simulate the system over time.
+    """
+
+    def __init__(self, name: str, dt: float = 0.25):
+        """
+        Initialize a model.
+
+        Args:
+            name: Model name
+            dt: Time step for integration (default: 0.25)
+        """
+        self.name = name
         self.dt = dt
-        self.solver = solver_cls(dt)
-        self._time_keeper = 0
-        self._step_counter = 0
+        self._stocks: dict[str, Stock] = {}
+        self._solvers: dict[str, Solver] = {
+            "euler": EulerSolver(),
+            "rk4": RK4Solver(),
+        }
+    
+    def add_stock(self, stock: Stock) -> None:
+        if stock.name in self._stocks:
+            raise ValueError(f"Stock '{stock.name}' already exists in model")
+        self._stocks[stock.name] = stock
+    
+    def reset(self) -> None:
+        for stock in self._stocks.values():
+            stock.reset()
+    
+    def _get_state(self) -> dict[str, float]:
+        return {name: stock.value for name, stock in self._stocks.items()}
 
-        if stocks:
-            self.add_stock(stocks)
+    def _compute_derivatives(self, time: float, state: dict[str, float]) -> dict[str, float]:
+        return {name: stock.net_flow(time, state) for name, stock in self._stocks.items()}
 
-    def add_stock(self, stocks: list[Stock] | Stock):
-        if isinstance(stocks, list):
-            for s in stocks:
-                self._load_stock(s)
-        else:
-            self._load_stock(stocks)
+    def _step(self, time: float, method: IntegrationMethod) -> None:
+        if method not in self._solvers:
+            raise ValueError(f"Unknown integration method: {method}")
 
-    def _load_stock(self, stock: Stock):
-        self.stocks[stock.name] = stock
-        for flow in stock.inflows:
-            if flow.name not in self.flows:
-                self.flows[flow.name] = flow
-        for flow in stock.outflows:
-            if flow.name not in self.flows:
-                self.flows[flow.name] = flow
+        solver = self._solvers[method]
+        state = self._get_state()
+        new_state = solver.step(time, self.dt, state, self._compute_derivatives)
 
-    def _step(self, step: int):
-        self._step_counter = step
-        for f in self.flows.values():
-            f.compute(step)
-            logger.debug(f"{f}.compute({step})={f.result}")
+        for name, stock in self._stocks.items():
+            stock.set_value(new_state[name])
 
-        for s in self.stocks.values():
-            self.solver.step(s, step)
-            logger.debug(f"{self.solver}.step({s}, {step})")
+    def run(self, duration: float, method: IntegrationMethod = "euler") -> pd.DataFrame:
+        self.reset()
 
-        self._time_keeper += self.dt
+        num_steps = int(duration / self.dt) + 1
+        times = [i * self.dt for i in range(num_steps)]
+        results = {"time": times, **{name: [] for name in self._stocks}}
 
-    def run(self):
-        history = {name: [] for name in self.stocks}
-        for s in range(self.steps):
-            logger.info(
-                f"RUN: step={s}, dt={self.dt}, time={self._time_keeper}, steps_taken=({self._step_counter}/{self.steps})"
-            )
-            self._step(s)
-            for name, stock in self.stocks.items():
-                history[name].append(stock.value)
-        return history
+        for i, time in enumerate(times):
+            for name, stock in self._stocks.items():
+                results[name].append(stock.value)
 
-    @property
-    def step(self):
-        return self._step_counter
+            if i < num_steps - 1:
+                self._step(time, method)
 
-    @property
-    def time(self):
-        return self._time_keeper
+        return pd.DataFrame(results)
+    
+    def plot(self, results: pd.DataFrame, *stock_names: str) -> None:
+        """
+        Plot simulation results.
+        
+        Args:
+            results: DataFrame from run()
+            stock_names: Names of stocks to plot (plots all if none specified)
+        """
+        if not stock_names:
+            stock_names = tuple(name for name in results.columns if name != "time")
+        
+        plt.figure(figsize=(10, 6))
+        for name in stock_names:
+            if name in results.columns:
+                plt.plot(results["time"], results[name], label=name, linewidth=2)
+        
+        plt.xlabel("Time")
+        plt.ylabel("Value")
+        plt.title(f"{self.name} - Simulation Results")
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.show()
+

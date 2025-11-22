@@ -1,6 +1,6 @@
 import mead.symbols as ms
 import math
-from mead.model import Model
+from mead.old_model import Model
 from mead.graph import Graph
 
 inventory = ms.Stock("Inventory", initial_value=50)

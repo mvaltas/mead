@@ -1,5 +1,5 @@
 from mead.symbols import Stock, Flow, Auxiliary, Constant, Delay
-from mead.model import Model
+from mead.old_model import Model
 from mead.graph import Graph
 
 # --- Parameters ---
