@@ -1,6 +1,7 @@
 import logging
 import sys
 import typer
+import rich
 import importlib
 import importlib.util
 from pathlib import Path
@@ -32,19 +33,27 @@ def version():
     typer.echo(f"mead {__version__}")
 
 
+@cli.command(hidden=True, name="ex")
 @cli.command()
 def example(name: str):
+    """ Execute an example in examples/
+
+    Usage:
+        mead example|ex [EXAMPLE_NAME]
+    """
     importlib.import_module(f"examples.{name}")
 
 
 @cli.command()
 def list():
+    """ List scripts in examples/
+    """
     specs = importlib.util.find_spec("examples")
     if specs is not None and specs.submodule_search_locations is not None:
         location = specs.submodule_search_locations[0]
         model_loc = Path(location)
         for m in model_loc.glob("*.py"):
-            print(m.stem)
+            rich.print(f"[cyan]examples[/cyan]/[yellow bold]{m.stem}[/yellow bold]")
 
 
 @cli.callback(invoke_without_command=True)

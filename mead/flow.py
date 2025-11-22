@@ -96,8 +96,7 @@ def ramp(slope: float, start: float, end: float = float('inf')) -> Callable[[flo
     return _ramp
 
 # ============ SMOOTHING (Already have smoothed()) ============
-def smoothed(stock_name: str, target_func: Callable, tau: float,
-            state_key: str = "smoothed") -> Callable[[float, dict[str, float]], float]:
+def smoothed(stock_name: str, target_func: Callable, tau: float) -> Callable[[float, dict[str, float]], float]:
     """
     Create a smoothed flow toward a target.
 
@@ -126,16 +125,20 @@ def goal_gap_dynamic(stock_name: str, target_func: Callable, adjustment_time: fl
 def if_then_else(condition: Callable, true_val: Callable, false_val: Callable):
     """Conditional flow"""
     return lambda t, s: true_val(t, s) if condition(t, s) else false_val(t, s)
+
 def clip(value_func: Callable, min_val: float, max_val: float):
     """Clamp value between min and max"""
     return lambda t, s: max(min_val, min(max_val, value_func(t, s)))
+
 # ============ AGGREGATION ============
 def sum_stocks(*stock_names: str):
     """Sum multiple stocks"""
     return lambda t, s: sum(s.get(name, 0) for name in stock_names)
+
 def min_stocks(*stock_names: str):
     """Minimum of multiple stocks"""
     return lambda t, s: min(s.get(name, 0) for name in stock_names)
+
 def max_stocks(*stock_names: str):
     """Maximum of multiple stocks"""
     return lambda t, s: max(s.get(name, 0) for name in stock_names)
