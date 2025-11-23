@@ -1,5 +1,8 @@
 import pandas as pd
-from typing import Literal, Type, Any, Callable
+from typing import Literal, Type, Any, Callable, List, Optional
+from pathlib import Path # Import Path for file operations
+import matplotlib.pyplot as plt # Import matplotlib for plotting
+
 from mead.core import Element, Constant
 from mead.components import Delay # Import Delay from its new location
 from mead.stock import Stock
@@ -69,18 +72,15 @@ class Model:
         }
 
         for stock in self.stocks.values():
-            # Pass the richer context to the flow's compute method
             inflow_rate = sum(flow.compute(context) for flow in stock.inflows)
             outflow_rate = sum(flow.compute(context) for flow in stock.outflows)
             derivatives[stock.name] = inflow_rate - outflow_rate
         return derivatives
 
     def run(self, duration: float, method: IntegrationMethod = "euler") -> pd.DataFrame:
-        """Runs the simulation."""
         solver = self._solvers[method]()
         self._history = [] # Reset history for each run
         
-        # Initialize state from stocks
         state = {s.name: s.initial_value for s in self.stocks.values()}
         
         num_steps = int(duration / self.dt)
@@ -88,21 +88,18 @@ class Model:
         results_list = []
 
         for i, time in enumerate(times):
-            # Create a richer context to pass to element.compute methods
-            # This context is specific to this time step's computations
             context_for_elements = {
                 "time": time,
-                "state": state, # The state of stocks (t)
+                "state": state, # state of stocks (t)
+                # function to access past results
                 "history_lookup": lambda name, delay_time_val: self._lookup_history(name, time, delay_time_val),
-                "dt": self.dt # Pass dt to context
+                "dt": self.dt
             }
             
-            # Compute values for all elements (stocks, constants, auxiliaries, delays, smooths)
-            # Use the current state for stocks, and compute for others
+            # compute or retrieve stock value
             current_element_values = {name: (state[name] if name in state else element.compute(context_for_elements)) 
                                       for name, element in self.elements.items()}
 
-            # Record current state and all element values for history lookup and results
             self._history.append((time, current_element_values.copy()))
             results_list.append({'time': time, **current_element_values})
 
@@ -113,3 +110,41 @@ class Model:
                 state = solver.step(time, self.dt, state, self._compute_derivatives)
 
         return pd.DataFrame(results_list).set_index("time")
+
+    def plot(self, results: pd.DataFrame, columns: Optional[List[str]] = None, save_path: Optional[Path] = None):
+        """
+        Generates a time-series line plot of the simulation results.
+
+        Args:
+            results: The DataFrame returned by the `run` method.
+            columns: A list of column names to plot. If None, all columns except 'time' are plotted.
+            save_path: If provided, the plot will be saved to this file path.
+                       Otherwise, plt.show() will be called.
+        """
+        if columns is None:
+            # Exclude 'time' from columns if it's there
+            plot_columns = [col for col in results.columns if col != 'time']
+        else:
+            plot_columns = [col for col in columns if col in results.columns]
+
+        if not plot_columns:
+            print("No columns to plot.")
+            return
+
+        fig, ax = plt.subplots(figsize=(10, 6))
+        
+        for col in plot_columns:
+            ax.plot(results.index, results[col], label=col)
+
+        ax.set_xlabel("Time")
+        ax.set_ylabel("Value")
+        ax.set_title(f"Simulation Results for {self.name}")
+        ax.legend()
+        ax.grid(True)
+
+        if save_path:
+            plt.savefig(save_path)
+            plt.close(fig)
+            print(f"Plot saved to {save_path}")
+        else:
+            plt.show()

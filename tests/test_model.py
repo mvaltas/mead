@@ -396,6 +396,9 @@ def test_ramp_element_in_model():
     assert results.loc[6, 'ramp_output'] == pytest.approx(35)
 
 
+import os # Import os for file cleanup
+from pathlib import Path # Import Path for file operations
+
 def test_initial_element_in_model():
     from mead.components import Initial # Import Initial for this test
 
@@ -431,3 +434,27 @@ def test_initial_element_in_model():
     assert results.loc[1, 'initial_constant_val'] == pytest.approx(50)
     assert results.loc[2, 'initial_constant_val'] == pytest.approx(50)
 
+def test_model_plot_method(tmp_path):
+    # This test requires matplotlib and will generate a file.
+    # tmp_path is a pytest fixture for a temporary directory.
+    
+    # 1. Run a simple model
+    model = Model("plot_test", dt=1.0)
+    population = Stock("population", 100)
+    birth_rate = Constant("birth_rate", 0.1)
+    births_eq = population * birth_rate
+    births = Flow("births", equation=births_eq)
+    population.add_inflow(births)
+    model.add(population, birth_rate, births)
+    results = model.run(duration=3)
+
+    # 2. Call the plot method with save_path specified
+    plot_file = tmp_path / "test_plot.png"
+    model.plot(results, columns=["population"], save_path=plot_file)
+
+    # 3. Assert that the file exists at the specified path
+    assert plot_file.exists()
+    assert plot_file.is_file()
+
+    # 4. Clean up the created file (pytest's tmp_path handles directory cleanup)
+    # No explicit cleanup needed for the file as tmp_path will clean up the directory.

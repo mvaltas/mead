@@ -19,3 +19,5 @@ model.add(temperature, cooling_coef, cooling)
 results = model.run(duration=8)
 
 print(results.head(9))
+
+model.plot(results)

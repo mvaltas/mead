@@ -68,3 +68,5 @@ print(f"\nFinal populations:")
 print(f"  Youth: {results['youth'].iloc[-1]:.2f}")
 print(f"  Adults: {results['adults'].iloc[-1]:.2f}")
 print(f"  Elderly: {results['elderly'].iloc[-1]:.2f}")
+
+model.plot(results, columns=['youth', 'adults', 'elderly'])

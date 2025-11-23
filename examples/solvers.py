@@ -44,7 +44,9 @@ results_euler = euler_model.run(duration=steps, method="euler")
 results_rk4 = rk4_model.run(duration=steps, method="rk4")
 
 # Combine results for comparison
-results = pd.DataFrame({'time': results_euler.index, 'euler': results_euler['euler'], 'rk4': results_rk4['rk4']})
+results = pd.DataFrame({'time': results_euler.index, 
+                        'rk4': results_rk4['rk4'],
+                        'euler': results_euler['euler']})
 results = results.set_index("time")
 
 # Numpy direct exp calculation (for analytical comparison)
@@ -53,3 +55,5 @@ results["numpy_analytical"] = np.exp(time_points * growth_rate_val)
 
 # Print last 10 results
 print(results.tail(10))
+
+Model("all_solvers").plot(results)

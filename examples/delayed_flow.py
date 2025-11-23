@@ -51,3 +51,5 @@ results = model.run(duration=50)
 
 # Print results
 print(results)
+
+model.plot(results, columns=["inventory"])

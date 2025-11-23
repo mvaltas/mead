@@ -1,4 +1,3 @@
-
 """
 Predator-Prey Model (Lotka-Volterra) with the new symbolic API.
 """
@@ -17,7 +16,7 @@ model = Model("Predator-Prey", dt=0.01)
 prey = Stock("prey", initial_value=100)
 predators = Stock("predators", initial_value=10)
 
-# 4. Define flows using symbolic equations
+# 4. Define flows
 prey_births = Flow("prey_births", equation = prey * prey_birth_rate)
 prey_deaths = Flow("prey_deaths", equation = predation_rate * prey * predators)
 predator_births = Flow("predator_births", equation = predator_efficiency * prey * predators)
@@ -46,8 +45,8 @@ model.add(
 # 7. Run the simulation
 results = model.run(duration=100, method="rk4")
 
-print(results.head(10))
+print(results.tail(10))
 print(f"\nFinal prey: {results['prey'].iloc[-1]:.2f}")
 print(f"Final predators: {results['predators'].iloc[-1]:.2f}")
 
-
+model.plot(results)
