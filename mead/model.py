@@ -60,16 +60,19 @@ class Model:
         # Should not be reached if target_time >= self._history[0][0] and history is not empty.
         return 0.0
 
-    def _compute_derivatives(self, time: float, state: dict[str, float]) -> dict[str, float]:
-        """Calculates the net change for all stocks at a given time and state."""
-        derivatives = {}
-        # Create a richer context to pass to element.compute methods
-        context = {
+    def _create_element_context(self, time: float, state: dict[str, float]) -> dict[str, Any]:
+        """Helper to create the context dictionary for element compute methods."""
+        return {
             "time": time,
             "state": state,
             "history_lookup": lambda name, delay_time_val: self._lookup_history(name, time, delay_time_val),
-            "dt": self.dt # Pass dt to context
+            "dt": self.dt
         }
+
+    def _compute_derivatives(self, time: float, state: dict[str, float]) -> dict[str, float]:
+        """Calculates the net change for all stocks at a given time and state."""
+        derivatives = {}
+        context = self._create_element_context(time, state)
 
         for stock in self.stocks.values():
             inflow_rate = sum(flow.compute(context) for flow in stock.inflows)
@@ -88,13 +91,7 @@ class Model:
         results_list = []
 
         for i, time in enumerate(times):
-            context_for_elements = {
-                "time": time,
-                "state": state, # state of stocks (t)
-                # function to access past results
-                "history_lookup": lambda name, delay_time_val: self._lookup_history(name, time, delay_time_val),
-                "dt": self.dt
-            }
+            context_for_elements = self._create_element_context(time, state)
             
             # compute or retrieve stock value
             current_element_values = {name: (state[name] if name in state else element.compute(context_for_elements)) 
@@ -104,9 +101,6 @@ class Model:
             results_list.append({'time': time, **current_element_values})
 
             if i < num_steps:
-                # The _compute_derivatives now needs a context that knows the current time.
-                # However, solver.step passes 'time' and 'state' directly.
-                # _compute_derivatives itself creates the context for flows/stocks.
                 state = solver.step(time, self.dt, state, self._compute_derivatives)
 
         return pd.DataFrame(results_list).set_index("time")
@@ -144,7 +138,7 @@ class Model:
 
         if save_path:
             plt.savefig(save_path)
-            plt.close(fig)
+            plt.close(fig) # Close the figure to free up memory
             print(f"Plot saved to {save_path}")
         else:
             plt.show()
