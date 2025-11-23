@@ -81,7 +81,3 @@ print(f"  Elderly: {results['elderly'].iloc[-1]:.2f}")
 print(f"  Total: {results['total'].iloc[-1]:.2f}")
 
 model.plot(results, "youth", "adults", "elderly")
-
-
-
-
