@@ -1,4 +1,5 @@
-from mead import Model, Stock, Flow, Constant, Delay
+from mead import Model, Stock, Flow, Constant
+from mead.components import Delay # Import Delay from its new location
 
 # A supply chain model with delayed replenishment
 model = Model(name="Simple Supply Chain", dt=1)

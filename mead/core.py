@@ -124,25 +124,4 @@ class Equation(Element):
         return f"{super().__repr__()}, op={self.op!r}, left={self.left.name!r}, right={self.right.name!r})"
 
 
-class Delay(Element):
-    """
-    An element that returns a delayed value of an input Stock.
-    Requires the model to manage history.
-    """
-    def __init__(self, name: str, input_stock: Stock, delay_time: float):
-        super().__init__(name)
-        self.input_stock = input_stock
-        self.delay_time = delay_time
 
-    def compute(self, context: dict[str, Any]) -> float:
-        history_lookup = context.get('history_lookup')
-        if not history_lookup:
-            raise RuntimeError("Delay element requires a 'history_lookup' function in the context.")
-        return history_lookup(self.input_stock.name, self.delay_time)
-
-    @property
-    def dependencies(self) -> list[Element]:
-        return [self.input_stock]
-
-    def __repr__(self) -> str:
-        return f"{super().__repr__()}, input_stock={self.input_stock.name!r}, delay_time={self.delay_time})"

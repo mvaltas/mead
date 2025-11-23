@@ -1,6 +1,7 @@
 import pandas as pd
 from typing import Literal, Type, Any, Callable
-from mead.core import Element, Constant, Delay
+from mead.core import Element, Constant
+from mead.components import Delay # Import Delay from its new location
 from mead.stock import Stock
 from mead.flow import Flow
 from .solver import Solver, EulerSolver, RK4Solver
@@ -33,28 +34,28 @@ class Model:
             if isinstance(element, Stock):
                 self.stocks[element.name] = element
 
-    def _lookup_history(self, name: str, delay_time: float) -> float:
+    def _lookup_history(self, name: str, current_sim_time: float, delay_time: float) -> float:
         """
-        Looks up the historical value of a named stock.
-        Only works for Stocks.
+        Looks up the historical value of a named element at a specific time in the past.
         """
         if not self._history:
-            return 0.0 # Or raise error/return initial_value
+            return 0.0 # No history yet, return 0.0
 
-        current_time = self._history[-1][0]
-        target_time = current_time - delay_time
+        target_time = current_sim_time - delay_time
         
-        if target_time < 0:
-            return 0.0 # Return 0.0 if the target time is before the simulation started
+        # If target time is before the very first recorded state, return 0.0
+        # This handles cases where delay_time is large or current_sim_time is very small.
+        if target_time < self._history[0][0]:
+            return 0.0
 
-        # Iterate in reverse to find the closest historical state
-        for time, state in reversed(self._history):
-            if time <= target_time:
-                return state.get(name, 0.0)
+        # Iterate in reverse to find the closest historical state at or before target_time
+        # _history stores (time, element_values_at_that_time)
+        for history_time, history_values in reversed(self._history):
+            if history_time <= target_time:
+                return history_values.get(name, 0.0)
         
-        # If no history point is found for target_time (e.g., target_time is very early)
-        return self._history[0][1].get(name, 0.0) if self._history else 0.0
-
+        # Should not be reached if target_time >= self._history[0][0] and history is not empty.
+        return 0.0
 
     def _compute_derivatives(self, time: float, state: dict[str, float]) -> dict[str, float]:
         """Calculates the net change for all stocks at a given time and state."""
@@ -63,7 +64,8 @@ class Model:
         context = {
             "time": time,
             "state": state,
-            "history_lookup": self._lookup_history
+            "history_lookup": lambda name, delay_time_val: self._lookup_history(name, time, delay_time_val),
+            "dt": self.dt # Pass dt to context
         }
 
         for stock in self.stocks.values():
@@ -86,11 +88,28 @@ class Model:
         results_list = []
 
         for i, time in enumerate(times):
-            # Record current state and time for history lookup
-            self._history.append((time, state.copy()))
-            results_list.append({'time': time, **state})
+            # Create a richer context to pass to element.compute methods
+            # This context is specific to this time step's computations
+            context_for_elements = {
+                "time": time,
+                "state": state, # The state of stocks (t)
+                "history_lookup": lambda name, delay_time_val: self._lookup_history(name, time, delay_time_val),
+                "dt": self.dt # Pass dt to context
+            }
+            
+            # Compute values for all elements (stocks, constants, auxiliaries, delays, smooths)
+            # Use the current state for stocks, and compute for others
+            current_element_values = {name: (state[name] if name in state else element.compute(context_for_elements)) 
+                                      for name, element in self.elements.items()}
+
+            # Record current state and all element values for history lookup and results
+            self._history.append((time, current_element_values.copy()))
+            results_list.append({'time': time, **current_element_values})
 
             if i < num_steps:
+                # The _compute_derivatives now needs a context that knows the current time.
+                # However, solver.step passes 'time' and 'state' directly.
+                # _compute_derivatives itself creates the context for flows/stocks.
                 state = solver.step(time, self.dt, state, self._compute_derivatives)
 
         return pd.DataFrame(results_list).set_index("time")

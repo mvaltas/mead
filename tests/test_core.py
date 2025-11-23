@@ -1,4 +1,4 @@
-from mead.core import Constant, Element, Auxiliary, Delay
+from mead.core import Constant, Element, Auxiliary
 from mead.stock import Stock
 import pytest
 

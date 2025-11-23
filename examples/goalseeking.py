@@ -1,7 +1,8 @@
 """
 Goal Seeking Model with Delay and Oscillatory Demand (Simplified)
 """
-from mead import Stock, Flow, Model, Constant, Auxiliary, Delay, goal_flow
+from mead import Stock, Flow, Model, Constant, goal_flow
+from mead.components import Delay # Import Delay from its new location
 import math
 
 # Constants
