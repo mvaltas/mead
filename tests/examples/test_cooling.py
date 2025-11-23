@@ -10,7 +10,7 @@ def test_cooling_eulers_method(caplog):
 
     m = Model("Cooling", dt=0.5)
     temperature = Stock("temperature", initial_value=100)
-    cooling = Flow("Cooling", equation=lambda t, s: s["temperature"] * 0.5)
+    cooling = Flow("Cooling", equation=lambda ctx: ctx["state"]["temperature"] * 0.5)
     temperature.add_outflow(cooling)
 
     m.add_stock(temperature)

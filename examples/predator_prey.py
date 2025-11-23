@@ -21,23 +21,23 @@ model = Model("Predator-Prey", dt=0.01)
 prey = Stock("prey", initial_value=100)
 predators = Stock("predators", initial_value=10)
 
-def prey_births_rate(t, s):
-    return prey_birth_rate * s.get("prey", 0)
+def prey_births_rate(ctx):
+    return prey_birth_rate * ctx["state"]["prey"]
 
 prey_births = Flow("prey_births", prey_births_rate)
 
-def predation(t, s):
-    return predation_rate * s.get("prey", 0) * s.get("predators", 0)
+def predation(ctx):
+    return predation_rate * ctx["state"]["prey"] * ctx["state"]["predators"]
 
 prey_deaths = Flow("prey_deaths", predation)
 
-def predator_births_rate(t, s):
-    return predator_efficiency * s.get("prey", 0) * s.get("predators", 0)
+def predator_births_rate(ctx):
+    return predator_efficiency * ctx["state"]["prey"] * ctx["state"]["predators"]
 
 predator_births = Flow("predator_births", predator_births_rate)
 
-def predator_deaths_rate(t, s):
-    return predator_death_rate * s.get("predators", 0)
+def predator_deaths_rate(ctx):
+    return predator_death_rate * ctx["state"]["predators"]
 
 predator_deaths = Flow("predator_deaths", predator_deaths_rate)
 

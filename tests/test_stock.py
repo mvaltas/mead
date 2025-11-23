@@ -23,8 +23,8 @@ def test_stock_reset():
 def test_stock_add_flows():
     stock = Stock("water", 1000)
     
-    inflow = Flow("rain", lambda t, s: 10)
-    outflow = Flow("evaporation", lambda t, s: 5)
+    inflow = Flow("rain", lambda ctx: 10)
+    outflow = Flow("evaporation", lambda ctx: 5)
     
     stock.add_inflow(inflow)
     stock.add_outflow(outflow)
@@ -36,25 +36,24 @@ def test_stock_add_flows():
 def test_stock_net_flow():
     stock = Stock("tank", 100)
     
-    inflow = Flow("input", lambda t, s: 20)
-    outflow = Flow("output", lambda t, s: 8)
+    inflow = Flow("input", lambda ctx: 20)
+    outflow = Flow("output", lambda ctx: 8)
     
     stock.add_inflow(inflow)
     stock.add_outflow(outflow)
     
-    net = stock.net_flow(0, {"tank": 100})
+    net = stock.net_flow({"state": {"tank": 100}})
     assert net == 12
 
 
 def test_stock_net_flow_with_state():
     stock = Stock("population", 100)
 
-    births = Flow("births", lambda t, s: 0.1 * s.get("population", 0))
+    births = Flow("births", lambda ctx: 0.1 * ctx["state"].get("population", 0))
     stock.add_inflow(births)
 
-    net = stock.net_flow(0, {"population": 100})
+    net = stock.net_flow({"state": {"population": 100}})
     assert net == 10
 
-    net = stock.net_flow(0, {"population": 200})
+    net = stock.net_flow({"state": {"population": 200}})
     assert net == 20
-

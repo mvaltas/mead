@@ -26,29 +26,29 @@ youth = Stock("youth", initial_value=1000)
 adults = Stock("adults", initial_value=3000)
 elderly = Stock("elderly", initial_value=500)
 
-def births_rate(t, s):
-    return birth_rate * s.get("adults", 0)
+def births_rate(ctx):
+    return birth_rate * ctx["state"]["adults"]
 
 births = Flow("births", births_rate)
 
-def youth_aging_rate(t, s):
-    return s.get("youth", 0) / youth_aging_time
+def youth_aging_rate(ctx):
+    return ctx["state"]["youth"] / youth_aging_time
 
 youth_aging = Flow("youth_aging", youth_aging_rate)
 
-def adult_aging_rate(t, s):
-    return s.get("adults", 0) / adult_aging_time
+def adult_aging_rate(ctx):
+    return ctx["state"]["adults"] / adult_aging_time
 
 adult_aging = Flow("adult_aging", adult_aging_rate)
 
-def youth_deaths_rate(t, s):
-    return youth_death_rate * s.get("youth", 0)
+def youth_deaths_rate(ctx):
+    return youth_death_rate * ctx["state"]["youth"]
 
-def adult_deaths_rate(t, s):
-    return adult_death_rate * s.get("adults", 0)
+def adult_deaths_rate(ctx):
+    return adult_death_rate * ctx["state"]["adults"]
 
-def elderly_deaths_rate(t, s):
-    return elderly_death_rate * s.get("elderly", 0)
+def elderly_deaths_rate(ctx):
+    return elderly_death_rate * ctx["state"]["elderly"]
 
 youth_deaths = Flow("youth_deaths", youth_deaths_rate)
 adult_deaths = Flow("adult_deaths", adult_deaths_rate)

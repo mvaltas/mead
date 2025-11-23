@@ -30,10 +30,10 @@ class Stock:
         """Add a flow that decreases this stock."""
         self._outflows.append(flow)
     
-    def net_flow(self, time: float, state: dict[str, float]) -> float:
+    def net_flow(self, context: dict) -> float:
         """Calculate the net rate of change (inflows - outflows)."""
-        inflows = sum(flow.rate(time, state) for flow in self._inflows)
-        outflows = sum(flow.rate(time, state) for flow in self._outflows)
+        inflows = sum(flow.rate(context) for flow in self._inflows)
+        outflows = sum(flow.rate(context) for flow in self._outflows)
         return inflows - outflows
     
     @property
@@ -48,4 +48,3 @@ class Stock:
     
     def __repr__(self) -> str:
         return f"Stock(name='{self.name}', value={self._current_value})"
-

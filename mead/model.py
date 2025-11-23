@@ -2,7 +2,7 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
-from typing import Literal
+from typing import Literal, Callable
 
 from .stock import Stock
 from .solver import Solver, EulerSolver, RK4Solver
@@ -33,6 +33,7 @@ class Model:
             "euler": EulerSolver(),
             "rk4": RK4Solver(),
         }
+        self._history: list[tuple[float, dict[str, float]]] = []
     
     def add_stock(self, stock: Stock) -> None:
         if stock.name in self._stocks:
@@ -40,14 +41,32 @@ class Model:
         self._stocks[stock.name] = stock
     
     def reset(self) -> None:
+        self._history = []
         for stock in self._stocks.values():
             stock.reset()
     
     def _get_state(self) -> dict[str, float]:
         return {name: stock.value for name, stock in self._stocks.items()}
 
+    def _lookup_history(self, name: str, delay: float) -> float:
+        """Finds a value in the history."""
+        target_time = self._history[-1][0] - delay
+        if target_time < 0:
+            return 0.0 # Or initial value?
+
+        # Simple lookup, could be improved with interpolation
+        for time, state in reversed(self._history):
+            if time <= target_time:
+                return state.get(name, 0.0)
+        return 0.0
+
     def _compute_derivatives(self, time: float, state: dict[str, float]) -> dict[str, float]:
-        return {name: stock.net_flow(time, state) for name, stock in self._stocks.items()}
+        context = {
+            "time": time,
+            "state": state,
+            "history": self._lookup_history
+        }
+        return {name: stock.net_flow(context) for name, stock in self._stocks.items()}
 
     def _step(self, time: float, method: IntegrationMethod) -> None:
         if method not in self._solvers:
@@ -68,6 +87,10 @@ class Model:
         results = {"time": times, **{name: [] for name in self._stocks}}
 
         for i, time in enumerate(times):
+            # Record current state at the beginning of the step
+            current_state = self._get_state()
+            self._history.append((time, current_state))
+            
             for name, stock in self._stocks.items():
                 results[name].append(stock.value)
 
@@ -98,4 +121,3 @@ class Model:
         plt.legend()
         plt.grid(True, alpha=0.3)
         plt.show()
-

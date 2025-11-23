@@ -21,8 +21,8 @@ model = Model("Goal Seeking", dt=0.25)
 
 inventory = Stock("inventory", initial_value=100)
 
-def adjustment_rate(_, s):
-    current = s.get("inventory", 0)
+def adjustment_rate(ctx):
+    current = ctx["state"]["inventory"]
     gap = target_inventory - current
     return gap / adjustment_time
 

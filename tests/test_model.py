@@ -1,5 +1,6 @@
 import pytest
-from mead import Stock, Flow, Model, fractional
+from mead import Stock, Flow, Model
+from mead.flow import fractional
 
 
 def test_model_initialization():
@@ -85,8 +86,8 @@ def test_goal_seeking():
     
     inventory = Stock("inventory", 100)
     
-    def adjustment_rate(t, s):
-        gap = target - s.get("inventory", 0)
+    def adjustment_rate(ctx):
+        gap = target - ctx["state"].get("inventory", 0)
         return gap / adjustment_time
     
     adjustment = Flow("adjustment", adjustment_rate)
