@@ -18,5 +18,8 @@ build:
 install: clean build
  pipx install --force dist/mead*.whl
 
+version:
+ uv run python -c 'import mead; print(mead.__version__);'
+
 @run param:
  - uv run python examples/{{param}}.py
