@@ -1,18 +1,22 @@
 """
-Numerical solvers comparison
+Numerical solvers comparison using the new Symbolic API.
 
 This example compares numerical solvers based on Euler
-method, RK4, and direct from Numpy
+method and RK4.
 """
-import numpy as np
-from mead import Stock, Flow, Model, fractional
+from mead import Stock, Flow, Model, Constant
+import numpy as np # Keep for generating analytical solution for comparison
 
 steps = 100
 time_step = 0.25
+growth_rate_val = 0.1 # 10% compounded growth
 
 # Setup two models for comparison
-euler_model = Model("Numerical solvers", dt=time_step)
-rk4_model = Model("Numerical solvers", dt=time_step)
+euler_model = Model("Euler Model", dt=time_step)
+rk4_model = Model("RK4 Model", dt=time_step)
+
+# Define constants
+exp_growth_rate = Constant("exp_growth_rate", growth_rate_val)
 
 # Each method needs its own stock
 euler_stock = Stock("euler", initial_value=1)
@@ -20,29 +24,31 @@ rk4_stock = Stock("rk4", initial_value=1)
 
 # Same flow for both stocks, 10% compounded growth
 # stock = stock + (stock * 0.1)
-euler_exp_growth = Flow("exp_growth", fractional("euler", 0.1))
-rk4_exp_growth = Flow("exp_growth", fractional("rk4", 0.1))
+exp_growth_eq_euler = euler_stock * exp_growth_rate
+euler_exp_growth_flow = Flow("exp_growth_flow", equation=exp_growth_eq_euler)
+
+exp_growth_eq_rk4 = rk4_stock * exp_growth_rate
+rk4_exp_growth_flow = Flow("exp_growth_flow", equation=exp_growth_eq_rk4)
 
 # Wire stocks and flows, add them to the model
-euler_stock.add_inflow(euler_exp_growth)
-euler_model.add_stock(euler_stock)
-rk4_stock.add_inflow(rk4_exp_growth)
-rk4_model.add_stock(rk4_stock)
+euler_stock.add_inflow(euler_exp_growth_flow)
+euler_model.add(euler_stock, exp_growth_rate, euler_exp_growth_flow)
+
+rk4_stock.add_inflow(rk4_exp_growth_flow)
+rk4_model.add(rk4_stock, exp_growth_rate, rk4_exp_growth_flow)
 
 # Euler method simulation
-results = euler_model.run(duration=steps, method="euler")
+results_euler = euler_model.run(duration=steps, method="euler")
 # RK4 method simulation
-rk4_results = rk4_model.run(duration=steps, method="rk4")
-# Numpy direct exp calculation
-time = np.linspace(1, 10, int(steps/time_step) + 1)
-results["numpy"] = list(np.exp(time))
+results_rk4 = rk4_model.run(duration=steps, method="rk4")
 
-# Copy rk4 results to euler results simulation so
-# we can plot both
-results["rk4"] = rk4_results["rk4"]
+# Combine results for comparison
+results = pd.DataFrame({'time': results_euler.index, 'euler': results_euler['euler'], 'rk4': results_rk4['rk4']})
+results = results.set_index("time")
+
+# Numpy direct exp calculation (for analytical comparison)
+time_points = results.index
+results["numpy_analytical"] = np.exp(time_points * growth_rate_val)
 
 # Print last 10 results
 print(results.tail(10))
-
-# Plot all stocks
-euler_model.plot(results,  "numpy", "euler", "rk4")

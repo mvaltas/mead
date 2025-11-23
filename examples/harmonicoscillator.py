@@ -1,36 +1,37 @@
-import mead.symbols as ms
-from mead.old_model import Model
-from mead.graph import Graph
+"""
+Harmonic Oscillator Model using the new symbolic API.
+"""
+from mead import Stock, Flow, Model, Constant
 
+# 1. Define constants
+m = Constant("mass", 1.0)          # mass
+k = Constant("spring_constant", 1.0) # spring constant
+c = Constant("damping", 0.0)       # damping
 
-# Signed stock (not recommended)
-class SignedStock(ms.Stock):
-    def __setattr__(self, key, val):
-        # bypass zero clamp in default stock
-        object.__setattr__(self, key, val)
+# 2. Create the model
+model = Model("Harmonic Oscillator", dt=0.01)
 
+# 3. Define stocks for position (x) and velocity (v)
+x = Stock("position", initial_value=1.0)
+v = Stock("velocity", initial_value=0.0)
 
-m = ms.Constant("m", 1.0)  # mass
-k = ms.Constant("k", 1.0)  # spring constant
-c = ms.Constant("c", 0.0)  # damping
-
-
-x = SignedStock("x", initial_value=1.0)  # position
-v = SignedStock("v", initial_value=0.0)  # velocity
-
+# 4. Define flows using symbolic equations
 # dx/dt = v
-dx = ms.Flow("dx", formula=lambda: v.value)
+dx = Flow("dx", equation=v)
 
 # dv/dt = -(k/m)x - (c/m)v
-dv = ms.Flow(
-    "dv",
-    formula=lambda: -(float(k) / float(m)) * x.value - (float(c) / float(m)) * v.value,
-)
+dv = Flow("dv", equation=-(k / m) * x - (c / m) * v)
 
-# connect flows
+# 5. Connect flows to stocks
 x.add_inflow(dx)
 v.add_inflow(dv)
 
-mdl = Model(steps=1000, dt=0.01, stocks=[x, v])
+# 6. Add all elements to the model
+model.add(m, k, c, x, v, dx, dv)
 
-Graph().plot(mdl.run())
+# 7. Run the simulation
+results = model.run(duration=10)
+
+print(results.head(10))
+print(f"\nFinal position: {results['position'].iloc[-1]:.2f}")
+print(f"\nFinal velocity: {results['velocity'].iloc[-1]:.2f}")

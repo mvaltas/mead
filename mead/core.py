@@ -1,0 +1,139 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from mead.model import Model
+    from mead.stock import Stock # Import Stock for type hinting
+
+class Element:
+    """The base class for all model elements."""
+    def __init__(self, name: str):
+        self.name = name
+        self.model: Model | None = None
+
+    def __add__(self, other: Any) -> Equation:
+        return Equation(self, "+", other)
+
+    def __radd__(self, other: Any) -> Equation:
+        return Equation(other, "+", self)
+
+    def __sub__(self, other: Any) -> Equation:
+        return Equation(self, "-", other)
+
+    def __rsub__(self, other: Any) -> Equation:
+        return Equation(other, "-", self)
+
+    def __mul__(self, other: Any) -> Equation:
+        return Equation(self, "*", other)
+
+    def __rmul__(self, other: Any) -> Equation:
+        return Equation(other, "*", self)
+
+    def __truediv__(self, other: Any) -> Equation:
+        return Equation(self, "/", other)
+
+    def __rtruediv__(self, other: Any) -> Equation:
+        return Equation(other, "/", self)
+
+    def compute(self, context: dict[str, Any]) -> float:
+        """Computes the value of the element based on the current model context."""
+        # By default, an element's value is its current state in the model
+        return context['state'].get(self.name, 0.0)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(name={self.name!r})"
+
+
+class Constant(Element):
+    """An element with a fixed value."""
+    def __init__(self, name: str, value: float):
+        super().__init__(name)
+        self.value = value
+    
+    def compute(self, context: dict[str, Any]) -> float:
+        return self.value
+
+    def __repr__(self) -> str:
+        return f"{super().__repr__()}, value={self.value})"
+
+
+class Auxiliary(Element):
+    """An element representing a named equation, useful for intermediate calculations."""
+    def __init__(self, name: str, equation: Element):
+        super().__init__(name)
+        self.equation = equation
+    
+    def compute(self, context: dict[str, Any]) -> float:
+        return self.equation.compute(context)
+
+    @property
+    def dependencies(self) -> list[Element]:
+        return [self.equation] # Auxiliary directly depends on its equation
+
+    def __repr__(self) -> str:
+        return f"{super().__repr__()}, equation={self.equation!r})"
+
+
+class Equation(Element):
+    """An element representing a mathematical operation between other elements."""
+    def __init__(self, left: Any, op: str, right: Any):
+        _left_element = left if isinstance(left, Element) else Constant(f"literal_{left}", float(left))
+        _right_element = right if isinstance(right, Element) else Constant(f"literal_{right}", float(right))
+        _name = f"({_left_element.name} {op} {_right_element.name})" # Generate name correctly
+
+        super().__init__(_name)
+        self.left = _left_element
+        self.right = _right_element
+        self.op = op
+
+    def compute(self, context: dict[str, Any]) -> float:
+        left_val = self.left.compute(context)
+        right_val = self.right.compute(context)
+
+        if self.op == '+':
+            return left_val + right_val
+        if self.op == '-':
+            return left_val - right_val
+        if self.op == '*':
+            return left_val * right_val
+        if self.op == '/':
+            # Add safe division
+            return left_val / right_val if right_val != 0 else 0.0
+        
+        raise ValueError(f"Unknown operator: {self.op}")
+
+    @property
+    def dependencies(self) -> list[Element]:
+        deps = []
+        if isinstance(self.left, Element) and not (isinstance(self.left, Constant) and self.left.name.startswith("literal_")):
+            deps.append(self.left)
+        if isinstance(self.right, Element) and not (isinstance(self.right, Constant) and self.right.name.startswith("literal_")):
+            deps.append(self.right)
+        return list(set(deps)) # Remove duplicates
+
+    def __repr__(self) -> str:
+        return f"{super().__repr__()}, op={self.op!r}, left={self.left.name!r}, right={self.right.name!r})"
+
+
+class Delay(Element):
+    """
+    An element that returns a delayed value of an input Stock.
+    Requires the model to manage history.
+    """
+    def __init__(self, name: str, input_stock: Stock, delay_time: float):
+        super().__init__(name)
+        self.input_stock = input_stock
+        self.delay_time = delay_time
+
+    def compute(self, context: dict[str, Any]) -> float:
+        history_lookup = context.get('history_lookup')
+        if not history_lookup:
+            raise RuntimeError("Delay element requires a 'history_lookup' function in the context.")
+        return history_lookup(self.input_stock.name, self.delay_time)
+
+    @property
+    def dependencies(self) -> list[Element]:
+        return [self.input_stock]
+
+    def __repr__(self) -> str:
+        return f"{super().__repr__()}, input_stock={self.input_stock.name!r}, delay_time={self.delay_time})"

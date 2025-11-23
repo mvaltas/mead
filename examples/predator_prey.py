@@ -1,60 +1,53 @@
+
 """
-Predator-Prey Model (Lotka-Volterra)
-
-Demonstrates coupled feedback loops creating oscillatory behavior.
-
-Structure:
-- Stocks: Prey population, Predator population
-- Flows: Prey births, Prey deaths (from predation), Predator births, Predator deaths
+Predator-Prey Model (Lotka-Volterra) with the new symbolic API.
 """
-from mead import Stock, Flow, Model
+from mead import Stock, Flow, Model, Constant
 
+# 1. Define constants for the rates
+prey_birth_rate = Constant("prey_birth_rate", 0.5)
+predation_rate = Constant("predation_rate", 0.01)
+predator_efficiency = Constant("predator_efficiency", 0.002)
+predator_death_rate = Constant("predator_death_rate", 0.3)
 
-"""Run predator-prey simulation."""
-prey_birth_rate = 0.5
-predation_rate = 0.01
-predator_efficiency = 0.002
-predator_death_rate = 0.3
-
+# 2. Create the model
 model = Model("Predator-Prey", dt=0.01)
 
+# 3. Define stocks
 prey = Stock("prey", initial_value=100)
 predators = Stock("predators", initial_value=10)
 
-def prey_births_rate(ctx):
-    return prey_birth_rate * ctx["state"]["prey"]
+# 4. Define flows using symbolic equations
+prey_births = Flow("prey_births", equation = prey * prey_birth_rate)
+prey_deaths = Flow("prey_deaths", equation = predation_rate * prey * predators)
+predator_births = Flow("predator_births", equation = predator_efficiency * prey * predators)
+predator_deaths = Flow("predator_deaths", equation = predator_death_rate * predators)
 
-prey_births = Flow("prey_births", prey_births_rate)
-
-def predation(ctx):
-    return predation_rate * ctx["state"]["prey"] * ctx["state"]["predators"]
-
-prey_deaths = Flow("prey_deaths", predation)
-
-def predator_births_rate(ctx):
-    return predator_efficiency * ctx["state"]["prey"] * ctx["state"]["predators"]
-
-predator_births = Flow("predator_births", predator_births_rate)
-
-def predator_deaths_rate(ctx):
-    return predator_death_rate * ctx["state"]["predators"]
-
-predator_deaths = Flow("predator_deaths", predator_deaths_rate)
-
+# 5. Connect flows to stocks
 prey.add_inflow(prey_births)
 prey.add_outflow(prey_deaths)
-
 predators.add_inflow(predator_births)
 predators.add_outflow(predator_deaths)
 
-model.add_stock(prey)
-model.add_stock(predators)
+# 6. Add all elements to the model
+model.add(
+    prey,
+    predators,
+    prey_birth_rate,
+    predation_rate,
+    predator_efficiency,
+    predator_death_rate,
+    prey_births,
+    prey_deaths,
+    predator_births,
+    predator_deaths
+)
 
+# 7. Run the simulation
 results = model.run(duration=100, method="rk4")
 
 print(results.head(10))
 print(f"\nFinal prey: {results['prey'].iloc[-1]:.2f}")
 print(f"Final predators: {results['predators'].iloc[-1]:.2f}")
 
-model.plot(results, "prey", "predators")
 

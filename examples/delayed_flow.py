@@ -1,30 +1,52 @@
-from mead import Model, Stock, Flow
-from mead.flow import fractional, delayed, stock_total
+from mead import Model, Stock, Flow, Constant, Delay
 
-# A suply chain that every three days can
-# replishish only 80% of the inventory
+# A supply chain model with delayed replenishment
 model = Model(name="Simple Supply Chain", dt=1)
 
 inventory = Stock("inventory", initial_value=10)
 port = Stock("port", initial_value=0)
 
-# rate we order new shipments, 90%
-port.add_inflow(Flow("order_rate", fractional("inventory", 0.9)))
-# port logistics, 100%
-port.add_outflow(Flow("logist_efficiency", stock_total("port")))
-# sales from inventory...
-inventory.add_outflow(Flow("sales", stock_total("inventory")))
+order_fraction = Constant("order_fraction", 0.9)
+logist_efficiency_val = Constant("logist_efficiency_val", 1.0) # Assumed 100% of port stock
 
-# delayed shippments
-inventory.add_inflow(Flow("shipments", delayed("port", delay_time=4)))
+# Inflow to port: rate we order new shipments
+order_rate_eq = inventory * order_fraction
+order_rate_flow = Flow("order_rate", equation=order_rate_eq)
+port.add_inflow(order_rate_flow)
 
-# Add stocks to the model
-model.add_stock(inventory)
-model.add_stock(port)
+# Outflow from port: port logistics efficiency
+# Assuming logist_efficiency is a direct outflow from port based on its current value
+logist_efficiency_flow = Flow("logist_efficiency", equation=port * logist_efficiency_val) # Assuming it clears port
+port.add_outflow(logist_efficiency_flow)
+
+
+# Outflow from inventory: sales from inventory
+sales_flow = Flow("sales", equation=inventory * Constant("sales_rate", 1.0)) # Assuming it clears inventory if possible
+inventory.add_outflow(sales_flow)
+
+# Inflow to inventory: delayed shipments from port
+# We delay the value of the 'port' stock by 4 time units.
+shipments_delayed = Delay("shipments_delayed_val", port, delay_time=4)
+shipments_flow = Flow("shipments", equation=shipments_delayed)
+inventory.add_inflow(shipments_flow)
+
+# Add all elements to the model
+model.add(
+    inventory,
+    port,
+    order_fraction,
+    logist_efficiency_val,
+    order_rate_flow,
+    logist_efficiency_flow,
+    sales_flow,
+    shipments_delayed,
+    shipments_flow,
+    Constant("sales_rate", 1.0) # Add the constant used in sales_flow
+)
+
 
 # Run the simulation
 results = model.run(duration=50)
 
-# Print and plot
+# Print results
 print(results)
-model.plot(results, "inventory")
