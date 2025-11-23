@@ -1,17 +1,12 @@
-"""
-System Thinking - A composable Python framework for System Dynamics modeling.
-
-This package provides simple building blocks for creating and simulating
-system dynamics models including stocks, flows, and feedback loops.
-"""
+import importlib.metadata
 
 from .core import Element, Constant, Equation, Auxiliary
 from .components import Delay, Smooth, Table, IfThenElse, Min, Max, Pulse, Step, Ramp, Initial
 from .stock import Stock
-from .flow import Flow, goal_flow
+from .flow import Flow
 from .model import Model
 
-__version__ = "0.2.0"
+__version__ = importlib.metadata.version("mead")
 
 __all__ = [
     "Element",
@@ -30,7 +25,6 @@ __all__ = [
     "Initial",
     "Stock",
     "Flow",
-    "goal_flow",
     "Model",
 ]
 

@@ -18,5 +18,5 @@ build:
 install: clean build
  pipx install --force dist/mead*.whl
 
-@run *params:
- - uv run python mead/cli.py {{params}}
+@run param:
+ - uv run python examples/{{param}}.py
