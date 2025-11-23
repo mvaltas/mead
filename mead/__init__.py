@@ -6,7 +6,20 @@ system dynamics models including stocks, flows, and feedback loops.
 """
 
 from .stock import Stock
-from .flow import Flow, constant, fractional, table_lookup
+from .flow import (
+        Flow, 
+        constant, 
+        fractional, 
+        table_lookup,
+        step,
+        single_pulse,
+        ramp,
+        smoothed,
+        clip,
+        sum_stocks,
+        min_stocks,
+        max_stocks,
+        )
 from .model import Model
 
 __version__ = "0.1.0"
@@ -18,4 +31,12 @@ __all__ = [
     "constant",
     "fractional",
     "table_lookup",
+    "step",
+    "single_pulse",
+    "ramp",
+    "smoothed",
+    "clip",
+    "sum_stocks",
+    "min_stocks",
+    "max_stocks",
 ]

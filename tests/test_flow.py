@@ -40,16 +40,19 @@ def test_fractional_helper():
 
 
 def test_table_lookup_helper():
-    table = {0: 0, 10: 100, 20: 150}
+    table: dict[float, float] = {0: 0, 10: 100, 20: 150}
     flow_func = table_lookup("input", table)
 
+    # precise table entry
     assert flow_func(0, {"input": 0}) == 0
     assert flow_func(0, {"input": 10}) == 100
     assert flow_func(0, {"input": 20}) == 150
 
+    # interpolation in between values
     assert flow_func(0, {"input": 5}) == 50
     assert flow_func(0, {"input": 15}) == 125
 
+    # value is bound by the table max/min
     assert flow_func(0, {"input": -5}) == 0
     assert flow_func(0, {"input": 25}) == 150
 

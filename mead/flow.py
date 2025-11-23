@@ -80,9 +80,9 @@ def step(height: float, step_time: float) -> Callable[[float, dict], float]:
     """Step function: 0 before step_time, height after."""
     return lambda t, s: height if t >= step_time else 0.0
 
-def pulse(height: float, start: float, width: float) -> Callable[[float, dict], float]:
+def single_pulse(pulse: float, start: float, duration: float) -> Callable[[float, dict], float]:
     """Pulse function: height for duration width starting at start."""
-    return lambda t, s: height if start <= t < start + width else 0.0
+    return lambda t, s: pulse if start <= t < start + duration else 0.0
 
 def ramp(slope: float, start: float, end: float = float('inf')) -> Callable[[float, dict], float]:
     """Ramp function: increases linearly from start."""
@@ -98,34 +98,17 @@ def ramp(slope: float, start: float, end: float = float('inf')) -> Callable[[flo
 # ============ SMOOTHING (Already have smoothed()) ============
 def smoothed(stock_name: str, target_func: Callable, tau: float) -> Callable[[float, dict[str, float]], float]:
     """
-    Create a smoothed flow toward a target.
+    Create a smoothed flow toward a target. Will goal seek
+    the target in tau steps.
 
     Args:
         stock_name: Name of the stock holding the smoothed value
         target_func: Function that returns the target value
         tau: Time constant for smoothing
-        state_key: Key in state dict for current smoothed value
     """
     return lambda t, s: (target_func(t, s) - s.get(stock_name, 0)) / tau
 
-def smooth(stock_name: str, input_value: Callable, tau: float):
-    """First-order exponential smooth - alias for smoothed()"""
-    return smoothed(stock_name, input_value, tau)
-
-# ============ GOAL-SEEKING ============
-def goal_gap(stock_name: str, target: float, adjustment_time: float):
-    """Goal-seeking flow: (target - current) / adjustment_time"""
-    return lambda t, s: (target - s.get(stock_name, 0)) / adjustment_time
-
-def goal_gap_dynamic(stock_name: str, target_func: Callable, adjustment_time: float):
-    """Goal-seeking with dynamic target"""
-    return lambda t, s: (target_func(t, s) - s.get(stock_name, 0)) / adjustment_time
-
 # ============ CONDITIONAL LOGIC ============
-def if_then_else(condition: Callable, true_val: Callable, false_val: Callable):
-    """Conditional flow"""
-    return lambda t, s: true_val(t, s) if condition(t, s) else false_val(t, s)
-
 def clip(value_func: Callable, min_val: float, max_val: float):
     """Clamp value between min and max"""
     return lambda t, s: max(min_val, min(max_val, value_func(t, s)))

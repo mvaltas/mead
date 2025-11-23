@@ -7,7 +7,6 @@ Structure:
 - Stocks: Prey population, Predator population
 - Flows: Prey births, Prey deaths (from predation), Predator births, Predator deaths
 """
-
 from mead import Stock, Flow, Model
 
 
