@@ -83,7 +83,7 @@ def test_delay_element_in_model():
     input_stock.add_inflow(input_flow)
 
     # Delayed value of input_stock
-    delayed_val = Delay("delayed_val", input_stock, 3.0) # Delay by 3 time units
+    delayed_val = Delay("delayed_val", input_stock, Constant("time_units", 3.0)) # Delay by 3 time units
     
     # Output stock receives the delayed value
     output_stock = Stock("output_stock", 0)

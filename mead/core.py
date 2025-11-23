@@ -1,9 +1,9 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
+# prevents circular import
 if TYPE_CHECKING:
     from mead.model import Model
-    from mead.stock import Stock # Import Stock for type hinting
 
 class Element:
     """The base class for all model elements."""

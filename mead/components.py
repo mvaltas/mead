@@ -6,13 +6,24 @@ if TYPE_CHECKING:
     from mead.model import Model
     from mead.stock import Stock
 
+
+def _to_element(value: Any) -> Element:
+    match value:
+        case float()|int():
+            return Constant(f"literal_{value}", value)
+        case Element():
+            return value
+        case _:
+            raise ValueError(f"Can't handle type of {value}")
+
+
 # Delay component moved from core.py
 class Delay(Element):
     """
     An element that returns a delayed value of an input Stock.
     Requires the model to manage history.
     """
-    def __init__(self, name: str, input_stock: Stock, delay_time: float):
+    def __init__(self, name: str, input_stock: Stock, delay_time: Element): # delay_time can be an Element
         super().__init__(name)
         self.input_stock = input_stock
         self.delay_time = delay_time
@@ -21,7 +32,9 @@ class Delay(Element):
         history_lookup = context.get('history_lookup')
         if not history_lookup:
             raise RuntimeError("Delay element requires a 'history_lookup' function in the context.")
-        return history_lookup(self.input_stock.name, self.delay_time)
+        
+        computed_delay_time = self.delay_time.compute(context) # Compute the value of delay_time
+        return history_lookup(self.input_stock.name, computed_delay_time)
 
     @property
     def dependencies(self) -> list[Element]:
@@ -252,11 +265,11 @@ class Step(Element):
     """
     An element that generates a step change in value at a specified start_time.
     """
-    def __init__(self, name: str, start_time: Element, before_value: Element, after_value: Element):
+    def __init__(self, name: str, start_time: float|Element, before_value: float|Element, after_value: float|Element):
         super().__init__(name)
-        self.start_time = start_time
-        self.before_value = before_value
-        self.after_value = after_value
+        self.start_time = _to_element(start_time)
+        self.before_value = _to_element(before_value)
+        self.after_value = _to_element(after_value)
 
     def compute(self, context: dict[str, Any]) -> float:
         current_time = context.get('time')
@@ -292,7 +305,7 @@ class Ramp(Element):
         self.initial_value = initial_value
 
     def compute(self, context: dict[str, Any]) -> float:
-        current_time = context.get('time')
+        current_time = context.get('time', 0.0)
         start = self.start_time.compute(context)
         end = self.end_time.compute(context)
         slp = self.slope.compute(context)
