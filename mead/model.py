@@ -105,40 +105,59 @@ class Model:
 
         return pd.DataFrame(results_list).set_index("time")
 
-    def plot(self, results: pd.DataFrame, columns: Optional[List[str]] = None, save_path: Optional[Path] = None):
+    def plot(self, results: pd.DataFrame, columns: Optional[List[str]] = None, secondary_y: Optional[List[str]] = None, save_path: Optional[Path] = None):
         """
-        Generates a time-series line plot of the simulation results.
+        Generates a time-series line plot of the simulation results, with an optional secondary Y-axis.
 
         Args:
             results: The DataFrame returned by the `run` method.
-            columns: A list of column names to plot. If None, all columns except 'time' are plotted.
-            save_path: If provided, the plot will be saved to this file path.
-                       Otherwise, plt.show() will be called.
+            columns: A list of column names to plot. If None, all columns are plotted.
+            secondary_y: A list of column names to plot on a secondary Y-axis.
+            save_path: If provided, the plot is saved; otherwise, it's displayed.
         """
         if columns is None:
-            # Exclude 'time' from columns if it's there
-            plot_columns = [col for col in results.columns if col != 'time']
-        else:
-            plot_columns = [col for col in columns if col in results.columns]
+            columns = [col for col in results.columns if col != 'time']
+        
+        primary_cols = [col for col in columns if col not in (secondary_y or [])]
+        secondary_cols = [col for col in (secondary_y or []) if col in columns]
 
-        if not plot_columns:
+        if not primary_cols and not secondary_cols:
             print("No columns to plot.")
             return
 
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax1 = plt.subplots(figsize=(12, 7))
         
-        for col in plot_columns:
-            ax.plot(results.index, results[col], label=col)
+        # Plot primary axes
+        colors = plt.cm.get_cmap('tab10', len(columns))
+        line1_handles = []
+        for i, col in enumerate(primary_cols):
+            line, = ax1.plot(results.index, results[col], label=col, color=colors(i))
+            line1_handles.append(line)
 
-        ax.set_xlabel("Time")
-        ax.set_ylabel("Value")
-        ax.set_title(f"Simulation Results for {self.name}")
-        ax.legend()
-        ax.grid(True)
+        ax1.set_xlabel("Time")
+        ax1.set_ylabel("Primary Value")
+        ax1.grid(True)
+
+        # Plot secondary axes if needed
+        if secondary_cols:
+            ax2 = ax1.twinx()
+            line2_handles = []
+            for i, col in enumerate(secondary_cols):
+                # Use a color offset for the secondary axis
+                line, = ax2.plot(results.index, results[col], label=col, color=colors(len(primary_cols) + i), linestyle='--')
+                line2_handles.append(line)
+            ax2.set_ylabel("Secondary Value")
+            # Combine legends
+            all_handles = line1_handles + line2_handles
+            ax1.legend(handles=all_handles, loc='best')
+        else:
+            ax1.legend(loc='best')
+            
+        ax1.set_title(f"Simulation Results for {self.name}")
 
         if save_path:
             plt.savefig(save_path)
-            plt.close(fig) # Close the figure to free up memory
+            plt.close(fig)
             print(f"Plot saved to {save_path}")
         else:
             plt.show()
