@@ -35,6 +35,9 @@ class Element:
     def __rtruediv__(self, other: Any) -> Equation:
         return Equation(other, "/", self)
 
+    def __neg__(self) -> Equation:
+        return Equation(0, "-", self) # Negation as 0 - self
+
     def compute(self, context: dict[str, Any]) -> float:
         """Computes the value of the element based on the current model context."""
         # By default, an element's value is its current state in the model

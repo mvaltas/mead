@@ -6,6 +6,7 @@ method and RK4.
 """
 from mead import Stock, Flow, Model, Constant
 import numpy as np # Keep for generating analytical solution for comparison
+import pandas as pd # Import pandas
 
 steps = 100
 time_step = 0.25

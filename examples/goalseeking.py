@@ -20,8 +20,8 @@ target_inventory = Constant("target_inventory", 60) # Target for goal seeking
 # For now, let's make demand a constant to simplify the math.sin issue.
 # A full oscillatory demand would require a function for math.sin over time.
 # Placeholder:
- demand_constant = Constant("demand_value", 10)
- demand = Flow("demand", equation=demand_constant) # Simplified to a constant demand for now
+demand_constant = Constant("demand_value", 10)
+demand = Flow("demand", equation=demand_constant) # Simplified to a constant demand for now
 
 
 # === Inventory Adjustment (Goal Seeking Flow) ===
