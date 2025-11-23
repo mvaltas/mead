@@ -37,11 +37,11 @@ def version():
 @cli.command()
 def example(name: str):
     """ Execute an example in examples/
-
     Usage:
         mead example|ex [EXAMPLE_NAME]
     """
-    importlib.import_module(f"examples.{name}")
+    ex_name = name.removesuffix(".py")
+    importlib.import_module(f"examples.{ex_name}")
 
 
 @cli.command()

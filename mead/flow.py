@@ -1,15 +1,16 @@
 from typing import Any
 from mead.core import Element, Equation
 from mead.stock import Stock # Import Stock from its own module
+from mead.utils import as_element
 
 class Flow(Element):
     """
     A Flow represents a rate of change in the model.
     Its value is determined by its equation.
     """
-    def __init__(self, name: str, equation: Element):
+    def __init__(self, name: str, equation: float | Element):
         super().__init__(name)
-        self.equation = equation
+        self.equation = as_element(equation)
     
     def compute(self, context: dict[str, Any]) -> float:
         """Computes the flow's rate by evaluating its equation."""

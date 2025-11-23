@@ -1,4 +1,4 @@
-from mead.core import Constant, Equation, Auxiliary
+from mead.core import Constant
 from mead.components import Delay # Import Delay from its new location
 from mead.stock import Stock
 from mead.flow import Flow
