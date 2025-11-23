@@ -5,7 +5,7 @@ Note: Some complex functions from the original example (e.g., smoothed, clip, ta
 are not directly supported by basic symbolic equations and would require new Element types or helper functions.
 """
 
-from mead import Flow, Model, Stock, Constant, Delay, Auxiliary, Equation
+from mead import Flow, Model, Stock, Constant, Delay, Equation
 
 # --- Helper functions for aggregation ---
 def sum_elements(*elements: Element) -> Equation:

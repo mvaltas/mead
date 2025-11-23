@@ -77,6 +77,16 @@ class Auxiliary(Element):
         return f"{super().__repr__()}, equation={self.equation!r})"
 
 
+import operator
+
+# Map operator symbols to functions
+_OPERATORS = {
+    '+': operator.add,
+    '-': operator.sub,
+    '*': operator.mul,
+    '/': operator.truediv,
+}
+
 class Equation(Element):
     """An element representing a mathematical operation between other elements."""
     def __init__(self, left: Any, op: str, right: Any):
@@ -88,22 +98,18 @@ class Equation(Element):
         self.left = _left_element
         self.right = _right_element
         self.op = op
+        if self.op not in _OPERATORS:
+            raise ValueError(f"Unknown operator: {self.op}")
 
     def compute(self, context: dict[str, Any]) -> float:
         left_val = self.left.compute(context)
         right_val = self.right.compute(context)
 
-        if self.op == '+':
-            return left_val + right_val
-        if self.op == '-':
-            return left_val - right_val
-        if self.op == '*':
-            return left_val * right_val
-        if self.op == '/':
-            # Add safe division
-            return left_val / right_val if right_val != 0 else 0.0
+        # Handle safe division explicitly before using the operator
+        if self.op == '/' and right_val == 0:
+            return 0.0
         
-        raise ValueError(f"Unknown operator: {self.op}")
+        return _OPERATORS[self.op](left_val, right_val)
 
     @property
     def dependencies(self) -> list[Element]:
