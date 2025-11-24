@@ -5,8 +5,10 @@ from typing import TYPE_CHECKING, Any, Sequence
 if TYPE_CHECKING:
     from mead.model import Model
 
+
 class Element:
     """The base class for all model elements."""
+
     def __init__(self, name: str):
         self.name = name
         self.model: Model | None = None
@@ -36,12 +38,12 @@ class Element:
         return Equation(other, "/", self)
 
     def __neg__(self) -> Equation:
-        return Equation(0, "-", self) # Negation as 0 - self
+        return Equation(0, "-", self)  # Negation as 0 - self
 
     def compute(self, context: dict[str, Any]) -> float:
         """Computes the value of the element based on the current model context."""
         # By default, an element's value is its current state in the model
-        return context['state'].get(self.name, 0.0)
+        return context["state"].get(self.name, 0.0)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(name={self.name!r})"
@@ -52,7 +54,8 @@ class DependenciesProperty:
     Provides a reusable implementation for the `dependencies` property.
     Subclasses should define a class-level attribute `_element_attrs` (Sequence[str])
     """
-    _element_attrs: Sequence[str] = [] # To be overridden by subclasses
+
+    _element_attrs: Sequence[str] = []  # To be overridden by subclasses
 
     @property
     def dependencies(self) -> list[Element]:
@@ -61,23 +64,26 @@ class DependenciesProperty:
             attr_value = getattr(self, attr_name)
             if isinstance(attr_value, Element):
                 deps.append(attr_value)
-                if hasattr(attr_value, 'dependencies'):
+                if hasattr(attr_value, "dependencies"):
                     deps.extend(attr_value.dependencies)
-            elif isinstance(attr_value, list): # For elements like Min/Max that take a list of inputs
+            elif isinstance(
+                attr_value, list
+            ):  # For elements like Min/Max that take a list of inputs
                 for item in attr_value:
                     if isinstance(item, Element):
                         deps.append(item)
-                        if hasattr(item, 'dependencies'):
+                        if hasattr(item, "dependencies"):
                             deps.extend(item.dependencies)
         return list(set(deps))
 
 
 class Constant(Element):
     """An element with a fixed value."""
+
     def __init__(self, name: str, value: float):
         super().__init__(name)
         self.value = value
-    
+
     def compute(self, context: dict[str, Any]) -> float:
         return self.value
 
@@ -87,16 +93,17 @@ class Constant(Element):
 
 class Auxiliary(Element):
     """An element representing a named equation, useful for intermediate calculations."""
+
     def __init__(self, name: str, equation: Element):
         super().__init__(name)
         self.equation = equation
-    
+
     def compute(self, context: dict[str, Any]) -> float:
         return self.equation.compute(context)
 
     @property
     def dependencies(self) -> list[Element]:
-        return [self.equation] # Auxiliary directly depends on its equation
+        return [self.equation]  # Auxiliary directly depends on its equation
 
     def __repr__(self) -> str:
         return f"{super().__repr__()}, equation={self.equation!r})"
@@ -119,18 +126,28 @@ import operator
 
 # Map operator symbols to functions
 _OPERATORS = {
-    '+': operator.add,
-    '-': operator.sub,
-    '*': operator.mul,
-    '/': operator.truediv,
+    "+": operator.add,
+    "-": operator.sub,
+    "*": operator.mul,
+    "/": operator.truediv,
 }
+
 
 class Equation(Element):
     """An element representing a mathematical operation between other elements."""
+
     def __init__(self, left: Any, op: str, right: Any):
-        _left_element = left if isinstance(left, Element) else Constant(f"literal_{left}", float(left))
-        _right_element = right if isinstance(right, Element) else Constant(f"literal_{right}", float(right))
-        _name = f"({_left_element.name} {op} {_right_element.name})" # Generate name correctly
+        _left_element = (
+            left
+            if isinstance(left, Element)
+            else Constant(f"literal_{left}", float(left))
+        )
+        _right_element = (
+            right
+            if isinstance(right, Element)
+            else Constant(f"literal_{right}", float(right))
+        )
+        _name = f"({_left_element.name} {op} {_right_element.name})"  # Generate name correctly
 
         super().__init__(_name)
         self.left = _left_element
@@ -144,22 +161,23 @@ class Equation(Element):
         right_val = self.right.compute(context)
 
         # Handle safe division explicitly before using the operator
-        if self.op == '/' and right_val == 0:
+        if self.op == "/" and right_val == 0:
             return 0.0
-        
+
         return _OPERATORS[self.op](left_val, right_val)
 
     @property
     def dependencies(self) -> list[Element]:
         deps = []
-        if isinstance(self.left, Element) and not (isinstance(self.left, Constant) and self.left.name.startswith("literal_")):
+        if isinstance(self.left, Element) and not (
+            isinstance(self.left, Constant) and self.left.name.startswith("literal_")
+        ):
             deps.append(self.left)
-        if isinstance(self.right, Element) and not (isinstance(self.right, Constant) and self.right.name.startswith("literal_")):
+        if isinstance(self.right, Element) and not (
+            isinstance(self.right, Constant) and self.right.name.startswith("literal_")
+        ):
             deps.append(self.right)
-        return list(set(deps)) # Remove duplicates
+        return list(set(deps))  # Remove duplicates
 
     def __repr__(self) -> str:
         return f"{super().__repr__()}, op={self.op!r}, left={self.left.name!r}, right={self.right.name!r})"
-
-
-

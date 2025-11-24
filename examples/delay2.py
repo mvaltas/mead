@@ -21,7 +21,7 @@ def run_delay2_example():
         name="Step Input",
         start_time=Constant("Step Start Time", 10.0),
         before_value=Constant("Before Step Value", 0.0),
-        after_value=Constant("After Step Value", 100.0)
+        after_value=Constant("After Step Value", 100.0),
     )
 
     # Define a Delay2 component
@@ -30,7 +30,7 @@ def run_delay2_example():
         name="Delayed Output (2nd Order)",
         input_element=step_input,
         delay_time=delay_time,
-        initial_value=Constant("Initial Delayed Value 2", 0.0)
+        initial_value=Constant("Initial Delayed Value 2", 0.0),
     )
 
     # For comparison, also include Delay3
@@ -38,15 +38,17 @@ def run_delay2_example():
         name="Delayed Output (3rd Order)",
         input_element=step_input,
         delay_time=delay_time,
-        initial_value=Constant("Initial Delayed Value 3", 0.0)
+        initial_value=Constant("Initial Delayed Value 3", 0.0),
     )
 
     # For comparison, also include a first-order smooth
     smooth_output = Smooth(
         name="Smooth Output (1st Order)",
         target_value=step_input,
-        smoothing_time=Constant("Smoothing Time (1st Order)", 5.0), # Same time constant for comparison
-        initial_value=Constant("Initial Smooth Value", 0.0)
+        smoothing_time=Constant(
+            "Smoothing Time (1st Order)", 5.0
+        ),  # Same time constant for comparison
+        initial_value=Constant("Initial Smooth Value", 0.0),
     )
 
     # Add elements to the model
@@ -66,4 +68,3 @@ def run_delay2_example():
 
 if __name__ == "__main__":
     run_delay2_example()
-

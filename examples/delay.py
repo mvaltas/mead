@@ -1,6 +1,6 @@
 from mead import Model, Stock
 from mead.flow import Flow
-from mead.components import Delay 
+from mead.components import Delay
 
 model = Model("Functions Demo", dt=1.0)
 
@@ -26,4 +26,4 @@ results = model.run(duration=20)
 print(results.tail(20))
 
 # Plotting selected key results
-model.plot(results, columns = ['source_stock', 'target_stock'])
+model.plot(results, columns=["source_stock", "target_stock"])

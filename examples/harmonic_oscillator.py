@@ -1,12 +1,13 @@
 """
 Harmonic Oscillator Model using the new symbolic API.
 """
+
 from mead import Stock, Flow, Model, Constant
 
 # 1. Constants
-m = Constant("mass", 1.0)          # mass
-k = Constant("spring_constant", 1.0) # spring constant
-c = Constant("damping", 0.0)       # damping
+m = Constant("mass", 1.0)  # mass
+k = Constant("spring_constant", 1.0)  # spring constant
+c = Constant("damping", 0.0)  # damping
 
 # 2. Model
 model = Model("Harmonic Oscillator", dt=0.01)
@@ -37,4 +38,4 @@ print(f"\nFinal position: {results['position'].iloc[-1]:.2f}")
 print(f"\nFinal velocity: {results['velocity'].iloc[-1]:.2f}")
 
 # 8. Plot
-model.plot(results, columns=['dx', 'dv', 'position'])
+model.plot(results, columns=["dx", "dv", "position"])

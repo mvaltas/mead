@@ -3,6 +3,7 @@ Goal Seeking Model
 
 Demonstrates a negative feedback loop where a stock adjusts towards a target.
 """
+
 from mead import Stock, Model, Constant
 from mead.flow import goal_flow
 

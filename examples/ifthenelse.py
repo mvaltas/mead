@@ -10,7 +10,9 @@ sales = Flow("sales", inventory * 0.4)
 # If inventory falls to <30% of the original stock
 # order 20% more of the current inventory
 start_stock = Initial("starting_stock", inventory)
-trigger_order = IfThenElse("trigger_backfill", ((start_stock * 0.3) - inventory), inventory * 1.2, 0)
+trigger_order = IfThenElse(
+    "trigger_backfill", ((start_stock * 0.3) - inventory), inventory * 1.2, 0
+)
 # backfill rate is managed by trigger_order
 backfill = Flow("backfill", trigger_order)
 

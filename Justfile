@@ -22,4 +22,4 @@ version:
  uv run python -c 'import mead; print(mead.__version__);'
 
 @run param:
- - uv run python examples/{{param}}.py
+ - uv run python {{param}}

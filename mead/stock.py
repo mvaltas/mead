@@ -5,11 +5,13 @@ from mead.core import Element
 if TYPE_CHECKING:
     from mead.flow import Flow
 
+
 class Stock(Element):
     """
     A Stock represents a state variable that accumulates over time.
     Stocks are changed by flows.
     """
+
     def __init__(self, name: str, initial_value: float = 0.0):
         super().__init__(name)
         self.initial_value = initial_value

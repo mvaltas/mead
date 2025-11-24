@@ -4,13 +4,14 @@ Numerical solvers comparison using the new Symbolic API.
 This example compares numerical solvers based on Euler
 method and RK4.
 """
+
 from mead import Stock, Flow, Model, Constant
-import numpy as np # Keep for generating analytical solution for comparison
-import pandas as pd # Import pandas
+import numpy as np  # Keep for generating analytical solution for comparison
+import pandas as pd  # Import pandas
 
 steps = 100
 time_step = 0.25
-growth_rate_val = 0.1 # 10% compounded growth
+growth_rate_val = 0.1  # 10% compounded growth
 
 # Setup two models for comparison
 euler_model = Model("Euler Model", dt=time_step)
@@ -44,9 +45,13 @@ results_euler = euler_model.run(duration=steps, method="euler")
 results_rk4 = rk4_model.run(duration=steps, method="rk4")
 
 # Combine results for comparison
-results = pd.DataFrame({'time': results_euler.index, 
-                        'rk4': results_rk4['rk4'],
-                        'euler': results_euler['euler']})
+results = pd.DataFrame(
+    {
+        "time": results_euler.index,
+        "rk4": results_rk4["rk4"],
+        "euler": results_euler["euler"],
+    }
+)
 results = results.set_index("time")
 
 # Numpy direct exp calculation (for analytical comparison)

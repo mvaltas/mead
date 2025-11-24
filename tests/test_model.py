@@ -1,5 +1,5 @@
 from mead.core import Constant
-from mead.components import Delay # Import Delay from its new location
+from mead.components import Delay  # Import Delay from its new location
 from mead.stock import Stock
 from mead.flow import Flow
 from mead.model import Model
@@ -7,9 +7,9 @@ import pytest
 
 # Dummy context for testing elements in isolation within tests
 dummy_context_model = {
-    'state': {'population': 100, 'input_stock': 10, 'other': 50},
-    'time': 0.0,
-    'history_lookup': lambda name, delay_time: 123.0 # A simple, constant return for testing
+    "state": {"population": 100, "input_stock": 10, "other": 50},
+    "time": 0.0,
+    "history_lookup": lambda name, delay_time: 123.0,  # A simple, constant return for testing
 }
 
 
@@ -22,20 +22,21 @@ def test_model_add_elements():
     assert "birth_rate" in model.elements
     assert "population" in model.stocks
 
+
 def test_exponential_growth_euler():
     model = Model("growth", dt=1.0)
-    
+
     population = Stock("population", 100)
     birth_rate = Constant("birth_rate", 0.1)
-    
+
     # Equation is defined symbolically
     births_eq = population * birth_rate
     births = Flow("births", equation=births_eq)
-    
+
     population.add_inflow(births)
-    
+
     model.add(population, birth_rate, births)
-    
+
     results = model.run(duration=3)
 
     # Check results
@@ -46,6 +47,7 @@ def test_exponential_growth_euler():
     assert results.loc[2, "population"] == pytest.approx(121)
     # t=3: 121 + (121 * 0.1) * 1.0 = 133.1
     assert results.loc[3, "population"] == pytest.approx(133.1)
+
 
 def test_goal_seeking_model():
     model = Model("goal_seek", dt=1.0)
@@ -72,35 +74,40 @@ def test_goal_seeking_model():
     # The calculated final value for dt=1, duration=10, initial=100, target=1000, adj_time=4
     assert results["inventory"].iloc[-1] == pytest.approx(949.3178367614746)
 
+
 def test_delay_element_in_model():
     model = Model("delay_test", dt=1.0)
-    
+
     input_stock = Stock("input_stock", 50)
     constant_rate = Constant("constant_rate", 10)
-    
+
     # Inflow to input_stock is a constant rate
     input_flow = Flow("input_flow", constant_rate)
     input_stock.add_inflow(input_flow)
 
     # Delayed value of input_stock
-    delayed_val = Delay("delayed_val", input_stock, Constant("time_units", 3.0)) # Delay by 3 time units
-    
+    delayed_val = Delay(
+        "delayed_val", input_stock, Constant("time_units", 3.0)
+    )  # Delay by 3 time units
+
     # Output stock receives the delayed value
     output_stock = Stock("output_stock", 0)
     output_flow = Flow("output_flow", delayed_val)
     output_stock.add_inflow(output_flow)
-    
-    model.add(input_stock, constant_rate, input_flow, delayed_val, output_stock, output_flow)
-    
+
+    model.add(
+        input_stock, constant_rate, input_flow, delayed_val, output_stock, output_flow
+    )
+
     results = model.run(duration=5)
 
     # input_stock will be 50, 60, 70, 80, 90, 100 at the start of each step
-    assert results.loc[0, 'input_stock'] == 50
-    assert results.loc[1, 'input_stock'] == 60
-    assert results.loc[2, 'input_stock'] == 70
-    assert results.loc[3, 'input_stock'] == 80
-    assert results.loc[4, 'input_stock'] == 90
-    assert results.loc[5, 'input_stock'] == 100
+    assert results.loc[0, "input_stock"] == 50
+    assert results.loc[1, "input_stock"] == 60
+    assert results.loc[2, "input_stock"] == 70
+    assert results.loc[3, "input_stock"] == 80
+    assert results.loc[4, "input_stock"] == 90
+    assert results.loc[5, "input_stock"] == 100
 
     # output_stock accumulates the delayed input_stock values
     # delayed_val is 0 for t=0,1,2 (delay time = 3)
@@ -108,24 +115,36 @@ def test_delay_element_in_model():
     # At t=4, delayed_val gets value from input_stock at t=1 (60) -> inflow = 60. output_stock for t=4 is 50.
     # At t=5, delayed_val gets value from input_stock at t=2 (70) -> inflow = 70. output_stock for t=5 is 50+60=110.
 
-    assert results.loc[0, 'output_stock'] == 0
-    assert results.loc[1, 'output_stock'] == 0
-    assert results.loc[2, 'output_stock'] == 0
-    assert results.loc[3, 'output_stock'] == 0 # At start of t=3, output_stock is still 0
-    assert results.loc[4, 'output_stock'] == pytest.approx(50) # At start of t=4, output_stock has accumulated 50 from t=3
-    assert results.loc[5, 'output_stock'] == pytest.approx(50 + 60) # At start of t=5, output_stock has accumulated 50+60 from t=3, t=4
+    assert results.loc[0, "output_stock"] == 0
+    assert results.loc[1, "output_stock"] == 0
+    assert results.loc[2, "output_stock"] == 0
+    assert (
+        results.loc[3, "output_stock"] == 0
+    )  # At start of t=3, output_stock is still 0
+    assert results.loc[4, "output_stock"] == pytest.approx(
+        50
+    )  # At start of t=4, output_stock has accumulated 50 from t=3
+    assert results.loc[5, "output_stock"] == pytest.approx(
+        50 + 60
+    )  # At start of t=5, output_stock has accumulated 50+60 from t=3, t=4
+
 
 def test_smooth_element_in_model():
-    from mead.components import Smooth # Import Smooth for this test
+    from mead.components import Smooth  # Import Smooth for this test
 
     model = Model("smooth_test", dt=1.0)
 
-    input_element = Stock("input_element", 100) # Input will increase by 10 each step
+    input_element = Stock("input_element", 100)  # Input will increase by 10 each step
     input_flow = Flow("input_flow", Constant("input_rate", 10))
     input_element.add_inflow(input_flow)
 
-    smoothing_time = Constant("smoothing_time", 2.0) # 2.0 time units for smoothing
-    smooth_val = Smooth("smooth_val", input_element, smoothing_time, initial_value=input_element.initial_value)
+    smoothing_time = Constant("smoothing_time", 2.0)  # 2.0 time units for smoothing
+    smooth_val = Smooth(
+        "smooth_val",
+        input_element,
+        smoothing_time,
+        initial_value=input_element.initial_value,
+    )
 
     model.add(input_element, input_flow, smoothing_time, smooth_val)
 
@@ -140,19 +159,20 @@ def test_smooth_element_in_model():
     # t=4: 121.25 + (1/2)*(140-121.25) = 121.25 + 9.375 = 130.625
     # t=5: 130.625 + (1/2)*(150-130.625) = 130.625 + 9.6875 = 140.3125
 
-    assert results.loc[0, 'smooth_val'] == pytest.approx(100)
-    assert results.loc[1, 'smooth_val'] == pytest.approx(105)
-    assert results.loc[2, 'smooth_val'] == pytest.approx(112.5)
-    assert results.loc[3, 'smooth_val'] == pytest.approx(121.25)
-    assert results.loc[4, 'smooth_val'] == pytest.approx(130.625)
-    assert results.loc[5, 'smooth_val'] == pytest.approx(140.3125)
+    assert results.loc[0, "smooth_val"] == pytest.approx(100)
+    assert results.loc[1, "smooth_val"] == pytest.approx(105)
+    assert results.loc[2, "smooth_val"] == pytest.approx(112.5)
+    assert results.loc[3, "smooth_val"] == pytest.approx(121.25)
+    assert results.loc[4, "smooth_val"] == pytest.approx(130.625)
+    assert results.loc[5, "smooth_val"] == pytest.approx(140.3125)
+
 
 def test_table_element_in_model():
-    from mead.components import Table # Import Table for this test
+    from mead.components import Table  # Import Table for this test
 
     model = Model("table_test", dt=1.0)
 
-    input_for_table = Stock("input_for_table", 0) # This will increase by 1 each step
+    input_for_table = Stock("input_for_table", 0)  # This will increase by 1 each step
     input_flow = Flow("input_flow", Constant("input_rate", 1))
     input_for_table.add_inflow(input_flow)
 
@@ -175,31 +195,32 @@ def test_table_element_in_model():
     # t=4: input=4, output=0 (exact point)
     # t=5: input=5, output=0 (extrapolation)
 
-    assert results.loc[0, 'table_lookup_val'] == pytest.approx(0.0)
-    assert results.loc[1, 'table_lookup_val'] == pytest.approx(10.0)
-    assert results.loc[2, 'table_lookup_val'] == pytest.approx(20.0)
-    assert results.loc[3, 'table_lookup_val'] == pytest.approx(10.0)
-    assert results.loc[4, 'table_lookup_val'] == pytest.approx(0.0)
-    assert results.loc[5, 'table_lookup_val'] == pytest.approx(0.0) # Extrapolation
-    
+    assert results.loc[0, "table_lookup_val"] == pytest.approx(0.0)
+    assert results.loc[1, "table_lookup_val"] == pytest.approx(10.0)
+    assert results.loc[2, "table_lookup_val"] == pytest.approx(20.0)
+    assert results.loc[3, "table_lookup_val"] == pytest.approx(10.0)
+    assert results.loc[4, "table_lookup_val"] == pytest.approx(0.0)
+    assert results.loc[5, "table_lookup_val"] == pytest.approx(0.0)  # Extrapolation
+
     # Test interpolation at t=0.5 (need to re-run model with smaller dt or check mid-step)
     # For now, rely on point and extrapolation checks
     # To test interpolation at say, input_for_table = 0.5, need to set initial_value differently or change dt.
 
     # Let's add a quick check for interpolation using a Constant as input
     model_interp = Model("table_interp_test", dt=1.0)
-    interp_input = Constant("interp_input", 1.5) # Value between 1 and 2
+    interp_input = Constant("interp_input", 1.5)  # Value between 1 and 2
     interp_table = Table("interp_table_val", interp_input, table_points)
     model_interp.add(interp_input, interp_table)
-    interp_results = model_interp.run(duration=0) # Run for 1 step to get initial value
+    interp_results = model_interp.run(duration=0)  # Run for 1 step to get initial value
     # For input 1.5:
     # x1=1, y1=10
     # x2=2, y2=20
     # y = 10 + (1.5 - 1) * (20 - 10) / (2 - 1) = 10 + 0.5 * 10 / 1 = 10 + 5 = 15
-    assert interp_results.loc[0, 'interp_table_val'] == pytest.approx(15.0)
+    assert interp_results.loc[0, "interp_table_val"] == pytest.approx(15.0)
+
 
 def test_ifthenelse_element_in_model():
-    from mead.components import IfThenElse # Import IfThenElse for this test
+    from mead.components import IfThenElse  # Import IfThenElse for this test
 
     model = Model("ifthenelse_test", dt=1.0)
 
@@ -210,15 +231,26 @@ def test_ifthenelse_element_in_model():
     false_output = Constant("false_output", 50)
 
     # Condition: input_val > threshold
-    condition_eq = input_val - threshold # Will be > 0 if input_val > threshold
-    conditional_val = IfThenElse("conditional_val", condition_eq, true_output, false_output)
+    condition_eq = input_val - threshold  # Will be > 0 if input_val > threshold
+    conditional_val = IfThenElse(
+        "conditional_val", condition_eq, true_output, false_output
+    )
 
     # A flow to change input_val so condition switches
     input_flow_rate = Constant("input_flow_rate", 3)
     input_flow = Flow("input_flow", input_flow_rate)
     input_val.add_inflow(input_flow)
 
-    model.add(input_val, threshold, true_output, false_output, condition_eq, conditional_val, input_flow_rate, input_flow)
+    model.add(
+        input_val,
+        threshold,
+        true_output,
+        false_output,
+        condition_eq,
+        conditional_val,
+        input_flow_rate,
+        input_flow,
+    )
 
     results = model.run(duration=5)
 
@@ -232,15 +264,16 @@ def test_ifthenelse_element_in_model():
     # t=4: input=17, condition=7 (>0), output=100
     # t=5: input=20, condition=10 (>0), output=100
 
-    assert results.loc[0, 'conditional_val'] == pytest.approx(50)
-    assert results.loc[1, 'conditional_val'] == pytest.approx(50)
-    assert results.loc[2, 'conditional_val'] == pytest.approx(100)
-    assert results.loc[3, 'conditional_val'] == pytest.approx(100)
-    assert results.loc[4, 'conditional_val'] == pytest.approx(100)
-    assert results.loc[5, 'conditional_val'] == pytest.approx(100)
+    assert results.loc[0, "conditional_val"] == pytest.approx(50)
+    assert results.loc[1, "conditional_val"] == pytest.approx(50)
+    assert results.loc[2, "conditional_val"] == pytest.approx(100)
+    assert results.loc[3, "conditional_val"] == pytest.approx(100)
+    assert results.loc[4, "conditional_val"] == pytest.approx(100)
+    assert results.loc[5, "conditional_val"] == pytest.approx(100)
+
 
 def test_min_element_in_model():
-    from mead.components import Min # Import Min for this test
+    from mead.components import Min  # Import Min for this test
 
     model = Model("min_test", dt=1.0)
 
@@ -265,14 +298,14 @@ def test_min_element_in_model():
     # t=2: min(10, 4, 5) = 4
     # t=3: min(10, -4, 5) = -4
 
-    assert results.loc[0, 'min_val'] == pytest.approx(5)
-    assert results.loc[1, 'min_val'] == pytest.approx(5)
-    assert results.loc[2, 'min_val'] == pytest.approx(4)
-    assert results.loc[3, 'min_val'] == pytest.approx(-4)
+    assert results.loc[0, "min_val"] == pytest.approx(5)
+    assert results.loc[1, "min_val"] == pytest.approx(5)
+    assert results.loc[2, "min_val"] == pytest.approx(4)
+    assert results.loc[3, "min_val"] == pytest.approx(-4)
 
 
 def test_max_element_in_model():
-    from mead.components import Max # Import Max for this test
+    from mead.components import Max  # Import Max for this test
 
     model = Model("max_test", dt=1.0)
 
@@ -297,14 +330,14 @@ def test_max_element_in_model():
     # t=2: max(10, 21, 15) = 21
     # t=3: max(10, 29, 15) = 29
 
-    assert results.loc[0, 'max_val'] == pytest.approx(15)
-    assert results.loc[1, 'max_val'] == pytest.approx(15)
-    assert results.loc[2, 'max_val'] == pytest.approx(21)
-    assert results.loc[3, 'max_val'] == pytest.approx(29)
+    assert results.loc[0, "max_val"] == pytest.approx(15)
+    assert results.loc[1, "max_val"] == pytest.approx(15)
+    assert results.loc[2, "max_val"] == pytest.approx(21)
+    assert results.loc[3, "max_val"] == pytest.approx(29)
 
 
 def test_pulse_element_in_model():
-    from mead.components import Pulse # Import Pulse for this test
+    from mead.components import Pulse  # Import Pulse for this test
 
     model = Model("pulse_test", dt=1.0)
 
@@ -325,16 +358,16 @@ def test_pulse_element_in_model():
     # t=4: 0 (start_time + duration = 4)
     # t=5: 0
 
-    assert results.loc[0, 'pulse_output'] == pytest.approx(0)
-    assert results.loc[1, 'pulse_output'] == pytest.approx(0)
-    assert results.loc[2, 'pulse_output'] == pytest.approx(100)
-    assert results.loc[3, 'pulse_output'] == pytest.approx(100)
-    assert results.loc[4, 'pulse_output'] == pytest.approx(0)
-    assert results.loc[5, 'pulse_output'] == pytest.approx(0)
+    assert results.loc[0, "pulse_output"] == pytest.approx(0)
+    assert results.loc[1, "pulse_output"] == pytest.approx(0)
+    assert results.loc[2, "pulse_output"] == pytest.approx(100)
+    assert results.loc[3, "pulse_output"] == pytest.approx(100)
+    assert results.loc[4, "pulse_output"] == pytest.approx(0)
+    assert results.loc[5, "pulse_output"] == pytest.approx(0)
 
 
 def test_step_element_in_model():
-    from mead.components import Step # Import Step for this test
+    from mead.components import Step  # Import Step for this test
 
     model = Model("step_test", dt=1.0)
 
@@ -355,16 +388,16 @@ def test_step_element_in_model():
     # t=4: 50
     # t=5: 50
 
-    assert results.loc[0, 'step_output'] == pytest.approx(10)
-    assert results.loc[1, 'step_output'] == pytest.approx(10)
-    assert results.loc[2, 'step_output'] == pytest.approx(50)
-    assert results.loc[3, 'step_output'] == pytest.approx(50)
-    assert results.loc[4, 'step_output'] == pytest.approx(50)
-    assert results.loc[5, 'step_output'] == pytest.approx(50)
+    assert results.loc[0, "step_output"] == pytest.approx(10)
+    assert results.loc[1, "step_output"] == pytest.approx(10)
+    assert results.loc[2, "step_output"] == pytest.approx(50)
+    assert results.loc[3, "step_output"] == pytest.approx(50)
+    assert results.loc[4, "step_output"] == pytest.approx(50)
+    assert results.loc[5, "step_output"] == pytest.approx(50)
 
 
 def test_ramp_element_in_model():
-    from mead.components import Ramp # Import Ramp for this test
+    from mead.components import Ramp  # Import Ramp for this test
 
     model = Model("ramp_test", dt=1.0)
 
@@ -387,29 +420,30 @@ def test_ramp_element_in_model():
     # t=5: 35 (holds value after end_time)
     # t=6: 35
 
-    assert results.loc[0, 'ramp_output'] == pytest.approx(5)
-    assert results.loc[1, 'ramp_output'] == pytest.approx(5)
-    assert results.loc[2, 'ramp_output'] == pytest.approx(15)
-    assert results.loc[3, 'ramp_output'] == pytest.approx(25)
-    assert results.loc[4, 'ramp_output'] == pytest.approx(35)
-    assert results.loc[5, 'ramp_output'] == pytest.approx(35)
-    assert results.loc[6, 'ramp_output'] == pytest.approx(35)
+    assert results.loc[0, "ramp_output"] == pytest.approx(5)
+    assert results.loc[1, "ramp_output"] == pytest.approx(5)
+    assert results.loc[2, "ramp_output"] == pytest.approx(15)
+    assert results.loc[3, "ramp_output"] == pytest.approx(25)
+    assert results.loc[4, "ramp_output"] == pytest.approx(35)
+    assert results.loc[5, "ramp_output"] == pytest.approx(35)
+    assert results.loc[6, "ramp_output"] == pytest.approx(35)
 
 
-import os # Import os for file cleanup
-from pathlib import Path # Import Path for file operations
+import os  # Import os for file cleanup
+from pathlib import Path  # Import Path for file operations
+
 
 def test_initial_element_in_model():
-    from mead.components import Initial # Import Initial for this test
+    from mead.components import Initial  # Import Initial for this test
 
     model = Model("initial_test", dt=1.0)
 
     my_stock = Stock("my_stock", initial_value=100)
     my_constant = Constant("my_constant", 50)
-    
+
     # Initial value of the stock
     initial_stock_val = Initial("initial_stock_val", my_stock)
-    
+
     # Initial value of the constant (should just be its value)
     initial_constant_val = Initial("initial_constant_val", my_constant)
 
@@ -418,7 +452,14 @@ def test_initial_element_in_model():
     my_flow = Flow("my_flow", flow_rate)
     my_stock.add_inflow(my_flow)
 
-    model.add(my_stock, my_constant, flow_rate, my_flow, initial_stock_val, initial_constant_val)
+    model.add(
+        my_stock,
+        my_constant,
+        flow_rate,
+        my_flow,
+        initial_stock_val,
+        initial_constant_val,
+    )
 
     results = model.run(duration=2)
 
@@ -426,18 +467,19 @@ def test_initial_element_in_model():
     # initial_stock_val should always be 100
     # initial_constant_val should always be 50
 
-    assert results.loc[0, 'initial_stock_val'] == pytest.approx(100)
-    assert results.loc[1, 'initial_stock_val'] == pytest.approx(100)
-    assert results.loc[2, 'initial_stock_val'] == pytest.approx(100)
-    
-    assert results.loc[0, 'initial_constant_val'] == pytest.approx(50)
-    assert results.loc[1, 'initial_constant_val'] == pytest.approx(50)
-    assert results.loc[2, 'initial_constant_val'] == pytest.approx(50)
+    assert results.loc[0, "initial_stock_val"] == pytest.approx(100)
+    assert results.loc[1, "initial_stock_val"] == pytest.approx(100)
+    assert results.loc[2, "initial_stock_val"] == pytest.approx(100)
+
+    assert results.loc[0, "initial_constant_val"] == pytest.approx(50)
+    assert results.loc[1, "initial_constant_val"] == pytest.approx(50)
+    assert results.loc[2, "initial_constant_val"] == pytest.approx(50)
+
 
 def test_model_plot_method(tmp_path):
     # This test requires matplotlib and will generate a file.
     # tmp_path is a pytest fixture for a temporary directory.
-    
+
     # 1. Run a simple model
     model = Model("plot_test", dt=1.0)
     population = Stock("population", 100)

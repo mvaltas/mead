@@ -1,7 +1,7 @@
 from mead import Model
 from mead.components import Pulse
 
-time_step = 1.0 
+time_step = 1.0
 model = Model("Functions Demo", dt=time_step)
 
 pulse_signal = Pulse("pulse_signal", start_time=4, duration=3, ammount=100)

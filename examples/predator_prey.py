@@ -1,6 +1,7 @@
 """
 Predator-Prey Model (Lotka-Volterra) with the new symbolic API.
 """
+
 from mead import Stock, Flow, Model, Constant
 
 # 1. Define constants for the rates
@@ -17,10 +18,12 @@ prey = Stock("prey", initial_value=100)
 predators = Stock("predators", initial_value=10)
 
 # 4. Define flows
-prey_births = Flow("prey_births", equation = prey * prey_birth_rate)
-prey_deaths = Flow("prey_deaths", equation = predation_rate * prey * predators)
-predator_births = Flow("predator_births", equation = predator_efficiency * prey * predators)
-predator_deaths = Flow("predator_deaths", equation = predator_death_rate * predators)
+prey_births = Flow("prey_births", equation=prey * prey_birth_rate)
+prey_deaths = Flow("prey_deaths", equation=predation_rate * prey * predators)
+predator_births = Flow(
+    "predator_births", equation=predator_efficiency * prey * predators
+)
+predator_deaths = Flow("predator_deaths", equation=predator_death_rate * predators)
 
 # 5. Connect flows to stocks
 prey.add_inflow(prey_births)
@@ -39,7 +42,7 @@ model.add(
     prey_births,
     prey_deaths,
     predator_births,
-    predator_deaths
+    predator_deaths,
 )
 
 # 7. Run the simulation

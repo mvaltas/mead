@@ -4,6 +4,7 @@ Exponential Growth Model
 Demonstrates a simple positive feedback loop where population grows
 at a constant fractional rate.
 """
+
 from mead import Stock, Flow, Model, Constant
 
 model = Model("Exponential Growth", dt=0.25)

@@ -1,5 +1,5 @@
 from mead import Model, Stock, Flow, Constant
-from mead.components import Delay # Import Delay from its new location
+from mead.components import Delay  # Import Delay from its new location
 
 # A supply chain model with delayed replenishment
 model = Model(name="Simple Supply Chain", dt=1)
@@ -8,7 +8,9 @@ inventory = Stock("inventory", initial_value=10)
 port = Stock("port", initial_value=0)
 
 order_fraction = Constant("order_fraction", 0.9)
-logist_efficiency_val = Constant("logist_efficiency_val", 1.0) # Assumed 100% of port stock
+logist_efficiency_val = Constant(
+    "logist_efficiency_val", 1.0
+)  # Assumed 100% of port stock
 
 # Inflow to port: rate we order new shipments
 order_rate_eq = inventory * order_fraction
@@ -17,12 +19,16 @@ port.add_inflow(order_rate_flow)
 
 # Outflow from port: port logistics efficiency
 # Assuming logist_efficiency is a direct outflow from port based on its current value
-logist_efficiency_flow = Flow("logist_efficiency", equation=port * logist_efficiency_val) # Assuming it clears port
+logist_efficiency_flow = Flow(
+    "logist_efficiency", equation=port * logist_efficiency_val
+)  # Assuming it clears port
 port.add_outflow(logist_efficiency_flow)
 
 
 # Outflow from inventory: sales from inventory
-sales_flow = Flow("sales", equation=inventory * Constant("sales_rate", 1.0)) # Assuming it clears inventory if possible
+sales_flow = Flow(
+    "sales", equation=inventory * Constant("sales_rate", 1.0)
+)  # Assuming it clears inventory if possible
 inventory.add_outflow(sales_flow)
 
 # Inflow to inventory: delayed shipments from port
@@ -42,7 +48,7 @@ model.add(
     sales_flow,
     shipments_delayed,
     shipments_flow,
-    Constant("sales_rate", 1.0) # Add the constant used in sales_flow
+    Constant("sales_rate", 1.0),  # Add the constant used in sales_flow
 )
 
 
