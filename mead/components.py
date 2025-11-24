@@ -312,7 +312,81 @@ class Ramp(DependenciesProperty, Element):
                 f"initial_value={self.initial_value.name!r})")
 
 
-class Delay3(Element):
+class Ramp(DependenciesProperty, Element):
+    """
+    An element that generates a linearly increasing (or decreasing) value over a period.
+    """
+    _element_attrs = ["start_time", "end_time", "slope", "initial_value"]
+
+    def __init__(
+            self, 
+            name: str, 
+            start_time: float | Element, 
+            end_time: float | Element, 
+            ammount: float | Element, 
+            initial_value: float | Element = 0.0):
+        super().__init__(name)
+        self.start_time = as_element(start_time)
+        self.end_time = as_element(end_time)
+        self.slope = as_element(ammount)
+        self.initial_value = as_element(initial_value)
+
+    def compute(self, context: dict[str, Any]) -> float:
+        current_time = context.get('time', 0.0)
+        start = self.start_time.compute(context)
+        end = self.end_time.compute(context)
+        slp = self.slope.compute(context)
+        initial = self.initial_value.compute(context)
+
+        if current_time < start:
+            return initial
+        elif start <= current_time <= end:
+            return initial + slp * (current_time - start)
+        else:
+            return initial + slp * (end - start) # Hold the value at end_time
+
+    def __repr__(self) -> str:
+        return (f"{super().__repr__()}, start_time={self.start_time.name!r}, "
+                f"end_time={self.end_time.name!r}, slope={self.slope.name!r}, "
+                f"initial_value={self.initial_value.name!r})")
+
+
+class Delay2(DependenciesProperty, Element):
+    """
+    A second-order exponential delay element, implemented as a chain of two Smooth components.
+    """
+    _element_attrs = ["input_element", "delay_time", "initial_value", "smooth1", "smooth2"]
+
+    def __init__(
+        self,
+        name: str,
+        input_element: float | Element,
+        delay_time: float | Element,
+        initial_value: float | Element = 0.0
+    ):
+        super().__init__(name)
+        self.input_element = as_element(input_element)
+        self.delay_time = as_element(delay_time)
+        self.initial_value = as_element(initial_value)
+
+        # The effective smoothing time for each stage of a second-order delay
+        # is delay_time / 2.0
+        smoothing_time_per_stage = as_element(self.delay_time / 2.0)
+
+        # Chain two Smooth components
+        self.smooth1 = Smooth(f"{name}_smooth1", self.input_element, smoothing_time_per_stage, self.initial_value)
+        self.smooth2 = Smooth(f"{name}_smooth2", self.smooth1, smoothing_time_per_stage, self.initial_value)
+
+    def compute(self, context: dict[str, Any]) -> float:
+        # The output of Delay2 is the output of the final Smooth component
+        return self.smooth2.compute(context)
+
+    def __repr__(self) -> str:
+        return (f"{super().__repr__()}, input_element={self.input_element.name!r}, "
+                f"delay_time={self.delay_time.name!r}, initial_value={self.initial_value.name!r})")
+
+
+class Delay3(DependenciesProperty, Element):
     """
     A third-order exponential delay element, implemented as a chain of three Smooth components.
     """
@@ -348,7 +422,7 @@ class Delay3(Element):
                 f"delay_time={self.delay_time.name!r}, initial_value={self.initial_value.name!r})")
 
 
-class Initial(Element):
+class Initial(DependenciesProperty, Element):
     """
     An element that returns the initial value of an input element.
     """
