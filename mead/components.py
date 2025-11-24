@@ -1,37 +1,12 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Sequence, Tuple
 
-from mead.core import Element
+from mead.core import Element, DependenciesProperty
 from mead.stock import Stock
 from mead.utils import as_element
 
 if TYPE_CHECKING:
     from mead.model import Model
-
-class DependenciesProperty:
-    """
-    Provides a reusable implementation for the `dependencies` property.
-    Subclasses should define a class-level attribute `_element_attrs` (Sequence[str])
-    """
-    _element_attrs: Sequence[str] = [] # To be overridden by subclasses
-
-    @property
-    def dependencies(self) -> list[Element]:
-        deps: list[Element] = []
-        for attr_name in self._element_attrs:
-            attr_value = getattr(self, attr_name)
-            if isinstance(attr_value, Element):
-                deps.append(attr_value)
-                if hasattr(attr_value, 'dependencies'):
-                    deps.extend(attr_value.dependencies)
-            elif isinstance(attr_value, list): # For elements like Min/Max that take a list of inputs
-                for item in attr_value:
-                    if isinstance(item, Element):
-                        deps.append(item)
-                        if hasattr(item, 'dependencies'):
-                            deps.extend(item.dependencies)
-        return list(set(deps))
-
 
 class Delay(DependenciesProperty, Element):
     """
@@ -271,45 +246,6 @@ class Step(DependenciesProperty, Element):
     def __repr__(self) -> str:
         return (f"{super().__repr__()}, start_time={self.start_time.name!r}, "
                 f"before_value={self.before_value.name!r}, after_value={self.after_value.name!r})")
-
-
-class Ramp(DependenciesProperty, Element):
-    """
-    An element that generates a linearly increasing (or decreasing) value over a period.
-    """
-    _element_attrs = ["start_time", "end_time", "slope", "initial_value"]
-
-    def __init__(
-            self, 
-            name: str, 
-            start_time: float | Element, 
-            end_time: float | Element, 
-            ammount: float | Element, 
-            initial_value: float | Element = 0.0):
-        super().__init__(name)
-        self.start_time = as_element(start_time)
-        self.end_time = as_element(end_time)
-        self.slope = as_element(ammount)
-        self.initial_value = as_element(initial_value)
-
-    def compute(self, context: dict[str, Any]) -> float:
-        current_time = context.get('time', 0.0)
-        start = self.start_time.compute(context)
-        end = self.end_time.compute(context)
-        slp = self.slope.compute(context)
-        initial = self.initial_value.compute(context)
-
-        if current_time < start:
-            return initial
-        elif start <= current_time <= end:
-            return initial + slp * (current_time - start)
-        else:
-            return initial + slp * (end - start) # Hold the value at end_time
-
-    def __repr__(self) -> str:
-        return (f"{super().__repr__()}, start_time={self.start_time.name!r}, "
-                f"end_time={self.end_time.name!r}, slope={self.slope.name!r}, "
-                f"initial_value={self.initial_value.name!r})")
 
 
 class Ramp(DependenciesProperty, Element):

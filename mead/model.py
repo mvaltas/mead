@@ -1,12 +1,10 @@
 import pandas as pd
-from typing import Literal, Type, Any, Callable, List, Optional
-from pathlib import Path # Import Path for file operations
-import matplotlib.pyplot as plt # Import matplotlib for plotting
+from typing import Literal, Type, Any, List, Optional
+from pathlib import Path 
+import matplotlib.pyplot as plt
 
-from mead.core import Element, Constant
-from mead.components import Delay # Import Delay from its new location
+from mead.core import Element, DependenciesProperty
 from mead.stock import Stock
-from mead.flow import Flow
 from .solver import Solver, EulerSolver, RK4Solver
 
 IntegrationMethod = Literal["euler", "rk4"]
@@ -28,7 +26,11 @@ class Model:
         self._history: list[tuple[float, dict[str, float]]] = []
 
     def add(self, *elements: Element):
-        """Adds one or more elements to the model."""
+        """Adds one or more elements to the model.
+
+        Args:
+            elements: Elements that participate in this model simulation.
+        """
         for element in elements:
             if element.name in self.elements:
                 raise ValueError(f"Element '{element.name}' already exists in model")
@@ -42,23 +44,19 @@ class Model:
         Looks up the historical value of a named element at a specific time in the past.
         """
         if not self._history:
-            return 0.0 # No history yet, return 0.0
+            return 0.0 
 
         target_time = current_sim_time - delay_time
         
-        # If target time is before the very first recorded state, return 0.0
-        # This handles cases where delay_time is large or current_sim_time is very small.
+        # default to 0.0 if access time precedes history
         if target_time < self._history[0][0]:
             return 0.0
 
-        # Iterate in reverse to find the closest historical state at or before target_time
-        # _history stores (time, element_values_at_that_time)
         for history_time, history_values in reversed(self._history):
             if history_time <= target_time:
                 return history_values.get(name, 0.0)
         
-        # Should not be reached if target_time >= self._history[0][0] and history is not empty.
-        return 0.0
+        return 0.0 # fallback
 
     def _create_element_context(self, time: float, state: dict[str, float]) -> dict[str, Any]:
         """Helper to create the context dictionary for element compute methods."""
@@ -92,20 +90,18 @@ class Model:
             current_element = to_process.pop()
             if current_element.name not in all_elements:
                 all_elements[current_element.name] = current_element
-                # Add dependencies to be processed
+                # explicit dependencies
                 if hasattr(current_element, 'dependencies'):
                     for dep in current_element.dependencies:
-                        # Ensure the dependency is an actual Element instance, not just its name or a float
                         if isinstance(dep, Element) and dep.name not in all_elements:
                             to_process.append(dep)
                 
-                # Special handling for elements that internally create other elements (like Delay3)
-                # This makes sure the internal smooths of Delay3 are also collected.
+                # collect internal dependencies
                 if hasattr(current_element, '__dict__'):
                     for attr_value in current_element.__dict__.values():
                         if isinstance(attr_value, Element) and attr_value.name not in all_elements:
                             to_process.append(attr_value)
-                        elif isinstance(attr_value, list): # Check for lists of elements (e.g., Min, Max input_elements)
+                        elif isinstance(attr_value, list):
                             for item in attr_value:
                                 if isinstance(item, Element) and item.name not in all_elements:
                                     to_process.append(item)
@@ -144,53 +140,42 @@ class Model:
 
         return pd.DataFrame(results_list).set_index("time")
 
-    def plot(self, results: pd.DataFrame, columns: Optional[List[str]] = None, secondary_y: Optional[List[str]] = None, save_path: Optional[Path] = None):
+    def plot(self, 
+             results: pd.DataFrame, 
+             columns: Optional[List[str]] = None, 
+             labels: tuple[str,str] = ('Time', 'Value'),
+             save_path: Optional[Path] = None,
+             ):
         """
-        Generates a time-series line plot of the simulation results, with an optional secondary Y-axis.
+        Quick shortcut to plot results from simulation, more robust plotting prefer
+        using `matplotlib` directly.
 
         Args:
             results: The DataFrame returned by the `run` method.
             columns: A list of column names to plot. If None, all columns are plotted.
-            secondary_y: A list of column names to plot on a secondary Y-axis.
+            labels: A tuple in the form (x_label, y_label), defaults to *Time x Value*
             save_path: If provided, the plot is saved; otherwise, it's displayed.
         """
         if columns is None:
             columns = [col for col in results.columns if col != 'time']
         
-        primary_cols = [col for col in columns if col not in (secondary_y or [])]
-        secondary_cols = [col for col in (secondary_y or []) if col in columns]
-
-        if not primary_cols and not secondary_cols:
+        if not columns: 
             print("No columns to plot.")
             return
 
         fig, ax1 = plt.subplots(figsize=(12, 7))
         
-        # Plot primary axes
-        colors = plt.cm.get_cmap('tab10', len(columns))
+        colors = plt.cm.get_cmap('Dark2', len(columns))
         line1_handles = []
-        for i, col in enumerate(primary_cols):
+        for i, col in enumerate(columns):
             line, = ax1.plot(results.index, results[col], label=col, color=colors(i))
             line1_handles.append(line)
 
-        ax1.set_xlabel("Time")
-        ax1.set_ylabel("Primary Value")
+        ax1.set_xlabel(labels[0])
+        ax1.set_ylabel(labels[1])
         ax1.grid(True)
 
-        # Plot secondary axes if needed
-        if secondary_cols:
-            ax2 = ax1.twinx()
-            line2_handles = []
-            for i, col in enumerate(secondary_cols):
-                # Use a color offset for the secondary axis
-                line, = ax2.plot(results.index, results[col], label=col, color=colors(len(primary_cols) + i), linestyle='--')
-                line2_handles.append(line)
-            ax2.set_ylabel("Secondary Value")
-            # Combine legends
-            all_handles = line1_handles + line2_handles
-            ax1.legend(handles=all_handles, loc='best')
-        else:
-            ax1.legend(loc='best')
+        ax1.legend(loc='best')
             
         ax1.set_title(f"Simulation Results for {self.name}")
 
