@@ -80,10 +80,45 @@ class Model:
             derivatives[stock.name] = inflow_rate - outflow_rate
         return derivatives
 
+    def _collect_all_elements(self) -> dict[str, Element]:
+        """
+        Recursively collects all unique elements in the model's computation graph,
+        starting from the top-level elements added via model.add().
+        """
+        all_elements: dict[str, Element] = {}
+        to_process: list[Element] = list(self.elements.values())
+        
+        while to_process:
+            current_element = to_process.pop()
+            if current_element.name not in all_elements:
+                all_elements[current_element.name] = current_element
+                # Add dependencies to be processed
+                if hasattr(current_element, 'dependencies'):
+                    for dep in current_element.dependencies:
+                        # Ensure the dependency is an actual Element instance, not just its name or a float
+                        if isinstance(dep, Element) and dep.name not in all_elements:
+                            to_process.append(dep)
+                
+                # Special handling for elements that internally create other elements (like Delay3)
+                # This makes sure the internal smooths of Delay3 are also collected.
+                if hasattr(current_element, '__dict__'):
+                    for attr_value in current_element.__dict__.values():
+                        if isinstance(attr_value, Element) and attr_value.name not in all_elements:
+                            to_process.append(attr_value)
+                        elif isinstance(attr_value, list): # Check for lists of elements (e.g., Min, Max input_elements)
+                            for item in attr_value:
+                                if isinstance(item, Element) and item.name not in all_elements:
+                                    to_process.append(item)
+        return all_elements
+
     def run(self, duration: float, method: IntegrationMethod = "euler") -> pd.DataFrame:
         solver = self._solvers[method]()
         self._history = [] # Reset history for each run
         
+        # Collect all elements in the computation graph
+        all_elements_to_compute = self._collect_all_elements()
+        
+        # Initialize state with initial values of all stocks
         state = {s.name: s.initial_value for s in self.stocks.values()}
         
         num_steps = int(duration / self.dt)
@@ -93,9 +128,13 @@ class Model:
         for i, time in enumerate(times):
             context_for_elements = self._create_element_context(time, state)
             
-            # compute or retrieve stock value
-            current_element_values = {name: (state[name] if name in state else element.compute(context_for_elements)) 
-                                      for name, element in self.elements.items()}
+            # Compute values for all collected elements
+            current_element_values = {}
+            for name, element in all_elements_to_compute.items():
+                if name in state: # If it's a stock, its value is in the state
+                    current_element_values[name] = state[name]
+                else: # Otherwise, compute its value
+                    current_element_values[name] = element.compute(context_for_elements)
 
             self._history.append((time, current_element_values.copy()))
             results_list.append({'time': time, **current_element_values})

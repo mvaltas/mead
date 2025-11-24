@@ -342,6 +342,50 @@ class Ramp(Element):
                 f"initial_value={self.initial_value.name!r})")
 
 
+class Delay3(Element):
+    """
+    A third-order exponential delay element, implemented as a chain of three Smooth components.
+    """
+    def __init__(
+        self,
+        name: str,
+        input_element: float | Element,
+        delay_time: float | Element,
+        initial_value: float | Element = 0.0
+    ):
+        super().__init__(name)
+        self.input_element = as_element(input_element)
+        self.delay_time = as_element(delay_time)
+        self.initial_value = as_element(initial_value)
+
+        # The effective smoothing time for each stage of a third-order delay
+        # is delay_time / 3.0
+        smoothing_time_per_stage = as_element(self.delay_time / 3.0)
+
+        # Chain three Smooth components
+        self.smooth1 = Smooth(f"{name}_smooth1", self.input_element, smoothing_time_per_stage, self.initial_value)
+        self.smooth2 = Smooth(f"{name}_smooth2", self.smooth1, smoothing_time_per_stage, self.initial_value)
+        self.smooth3 = Smooth(f"{name}_smooth3", self.smooth2, smoothing_time_per_stage, self.initial_value)
+
+    def compute(self, context: dict[str, Any]) -> float:
+        # The output of Delay3 is the output of the final Smooth component
+        return self.smooth3.compute(context)
+
+    @property
+    def dependencies(self) -> list[Element]:
+        # Dependencies are the input_element, the delay_time, and the internal smooth components
+        deps = [self.input_element, self.delay_time, self.smooth1, self.smooth2, self.smooth3]
+        if hasattr(self.input_element, 'dependencies'):
+            deps.extend(self.input_element.dependencies)
+        if hasattr(self.delay_time, 'dependencies'):
+            deps.extend(self.delay_time.dependencies)
+        return list(set(deps))
+
+    def __repr__(self) -> str:
+        return (f"{super().__repr__()}, input_element={self.input_element.name!r}, "
+                f"delay_time={self.delay_time.name!r}, initial_value={self.initial_value.name!r})")
+
+
 class Initial(Element):
     """
     An element that returns the initial value of an input element.
