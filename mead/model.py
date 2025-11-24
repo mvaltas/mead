@@ -144,7 +144,7 @@ class Model:
              results: pd.DataFrame, 
              columns: Optional[List[str]] = None, 
              labels: tuple[str,str] = ('Time', 'Value'),
-             save_path: Optional[Path] = None,
+             save_path: Optional[str | Path] = None,
              ):
         """
         Quick shortcut to plot results from simulation, more robust plotting prefer
@@ -180,7 +180,7 @@ class Model:
         ax1.set_title(f"Simulation Results for {self.name}")
 
         if save_path:
-            plt.savefig(save_path)
+            plt.savefig(Path(save_path))
             plt.close(fig)
             print(f"Plot saved to {save_path}")
         else:

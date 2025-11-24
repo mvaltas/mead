@@ -42,4 +42,4 @@ the 'population' stock over time. Like so:
 ![Example](examples/imgs/readme_ex.png)
 
 
-The directory `examples/` has other examples of this framework usage.
+The directory `examples/` contains other examples of this framework usage.
