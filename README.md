@@ -37,5 +37,9 @@ model.plot(results)
 ```
 
 This will produce a pandas DataFrame with the simulation results and a plot of
-the 'population' stock over time. The directory `examples/` has other
-examples of this framework usage.
+the 'population' stock over time. Like so:
+
+![Example](img/readme_ex.png)
+
+
+The directory `examples/` has other examples of this framework usage.
