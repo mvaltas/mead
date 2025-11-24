@@ -316,7 +316,7 @@ class Delay3(Element):
     """
     A third-order exponential delay element, implemented as a chain of three Smooth components.
     """
-    _element_attrs = ['input_element', 'delay_time', 'initial_value']
+    _element_attrs = ['input_element', 'delay_time', 'initial_value', 'smooth1', 'smooth2', 'smooth3']
 
     def __init__(
         self,
