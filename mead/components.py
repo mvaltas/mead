@@ -8,11 +8,38 @@ from mead.utils import as_element
 if TYPE_CHECKING:
     from mead.model import Model
 
-class Delay(Element):
+class DependenciesProperty:
+    """
+    Provides a reusable implementation for the `dependencies` property.
+    Subclasses should define a class-level attribute `_element_attrs` (Sequence[str])
+    """
+    _element_attrs: Sequence[str] = [] # To be overridden by subclasses
+
+    @property
+    def dependencies(self) -> list[Element]:
+        deps: list[Element] = []
+        for attr_name in self._element_attrs:
+            attr_value = getattr(self, attr_name)
+            if isinstance(attr_value, Element):
+                deps.append(attr_value)
+                if hasattr(attr_value, 'dependencies'):
+                    deps.extend(attr_value.dependencies)
+            elif isinstance(attr_value, list): # For elements like Min/Max that take a list of inputs
+                for item in attr_value:
+                    if isinstance(item, Element):
+                        deps.append(item)
+                        if hasattr(item, 'dependencies'):
+                            deps.extend(item.dependencies)
+        return list(set(deps))
+
+
+class Delay(DependenciesProperty, Element):
     """
     An element that returns a delayed value of an input Stock.
     Requires the model to manage history.
     """
+    _element_attrs = ["input_stock", "delay_time"]
+
     def __init__(self, name: str, input_stock: Element, delay_time: float | Element):
         super().__init__(name)
         self.input_stock = input_stock
@@ -26,19 +53,17 @@ class Delay(Element):
         computed_delay_time = self.delay_time.compute(context) # Compute the value of delay_time
         return history_lookup(self.input_stock.name, computed_delay_time)
 
-    @property
-    def dependencies(self) -> list[Element]:
-        return [self.input_stock]
-
     def __repr__(self) -> str:
         return f"{super().__repr__()}, input_stock={self.input_stock.name!r}, delay_time={self.delay_time})"
 
-class Smooth(Element):
+class Smooth(DependenciesProperty, Element):
     """
     An element that computes an exponential smooth of an input.
     smooth_value(t) = smooth_value(t-dt) + (dt / smoothing_time) * (input_value(t) - smooth_value(t-dt))
     Requires the model to manage history of this smooth element itself.
     """
+    _element_attrs = ["target_value", "smoothing_time", "initial_value"]
+
     def __init__(self, 
                  name: str, 
                  target_value: float | Element, 
@@ -72,24 +97,17 @@ class Smooth(Element):
         # Exponential smoothing formula
         return previous_smooth_val + (dt / smoothing_time_val) * (input_val - previous_smooth_val)
 
-    @property
-    def dependencies(self) -> list[Element]:
-        deps = [self.target_value, self.smoothing_time]
-        if hasattr(self.target_value, 'dependencies'):
-            deps.extend(self.target_value.dependencies)
-        if hasattr(self.smoothing_time, 'dependencies'):
-            deps.extend(self.smoothing_time.dependencies)
-        return list(set(deps)) # Remove duplicates
-
     def __repr__(self) -> str:
         return f"{super().__repr__()}, input_element={self.target_value.name!r}, smoothing_time={self.smoothing_time.name!r}, initial_value={self.initial_value})"
 
 
-class Table(Element):
+class Table(DependenciesProperty, Element):
     """
     An element that performs a lookup from a table (functional relationship)
     using linear interpolation.
     """
+    _element_attrs = ["input_element"]
+
     def __init__(self, 
                  name: str, 
                  input: float | Element, 
@@ -125,22 +143,17 @@ class Table(Element):
         
         return 0.0 # Fallback
 
-    @property
-    def dependencies(self) -> list[Element]:
-        deps = [self.input_element]
-        if hasattr(self.input_element, 'dependencies'):
-            deps.extend(self.input_element.dependencies)
-        return list(set(deps)) # Remove duplicates
-
     def __repr__(self) -> str:
         return f"{super().__repr__()}, input_element={self.input_element.name!r}, points={self.points!r})"
 
 
-class IfThenElse(Element):
+class IfThenElse(DependenciesProperty, Element):
     """
     An element that represents conditional logic.
     If condition > 0, returns the true_element's value, else returns the false_element's value.
     """
+    _element_attrs = ["condition", "true_element", "false_element"]
+
     def __init__(self, 
                  name: str, 
                  condition: float | Element, 
@@ -158,26 +171,17 @@ class IfThenElse(Element):
         else:
             return self.false_element.compute(context)
 
-    @property
-    def dependencies(self) -> list[Element]:
-        deps = [self.condition, self.true_element, self.false_element]
-        if hasattr(self.condition, 'dependencies'):
-            deps.extend(self.condition.dependencies)
-        if hasattr(self.true_element, 'dependencies'):
-            deps.extend(self.true_element.dependencies)
-        if hasattr(self.false_element, 'dependencies'):
-            deps.extend(self.false_element.dependencies)
-        return list(set(deps))
-
     def __repr__(self) -> str:
         return (f"{super().__repr__()}, condition={self.condition.name!r}, "
                 f"true_element={self.true_element.name!r}, false_element={self.false_element.name!r})")
 
 
-class Min(Element):
+class Min(DependenciesProperty, Element):
     """
     An element that returns the minimum of its input elements.
     """
+    _element_attrs = ["input_elements"] # input_elements is a list of Elements
+
     def __init__(self, name: str, *input_elements: float | Element):
         super().__init__(name)
         if not input_elements:
@@ -187,24 +191,17 @@ class Min(Element):
     def compute(self, context: dict[str, Any]) -> float:
         return min(el.compute(context) for el in self.input_elements)
 
-    @property
-    def dependencies(self) -> list[Element]:
-        deps = []
-        for el in self.input_elements:
-            deps.append(el)
-            if hasattr(el, 'dependencies'):
-                deps.extend(el.dependencies)
-        return list(set(deps))
-
     def __repr__(self) -> str:
         input_names = ", ".join(el.name for el in self.input_elements)
         return f"{super().__repr__()}, inputs=[{input_names}])"
 
 
-class Max(Element):
+class Max(DependenciesProperty, Element):
     """
     An element that returns the maximum of its input elements.
     """
+    _element_attrs = ["input_elements"] # input_elements is a list of Elements
+
     def __init__(self, name: str, *input_elements: float | Element):
         super().__init__(name)
         if not input_elements:
@@ -214,24 +211,17 @@ class Max(Element):
     def compute(self, context: dict[str, Any]) -> float:
         return max(el.compute(context) for el in self.input_elements)
 
-    @property
-    def dependencies(self) -> list[Element]:
-        deps = []
-        for el in self.input_elements:
-            deps.append(el)
-            if hasattr(el, 'dependencies'):
-                deps.extend(el.dependencies)
-        return list(set(deps))
-
     def __repr__(self) -> str:
         input_names = ", ".join(el.name for el in self.input_elements)
         return f"{super().__repr__()}, inputs=[{input_names}])"
 
 
-class Pulse(Element):
+class Pulse(DependenciesProperty, Element):
     """
     An element that generates a pulse (a temporary burst) of a given magnitude.
     """
+    _element_attrs = ["start_time", "duration", "magnitude"]
+
     def __init__(self, 
                  name: str, 
                  start_time: float | Element, 
@@ -252,23 +242,17 @@ class Pulse(Element):
             return mag
         return 0.0
 
-    @property
-    def dependencies(self) -> list[Element]:
-        deps = [self.start_time, self.duration, self.magnitude]
-        for el in deps:
-            if hasattr(el, 'dependencies'):
-                deps.extend(el.dependencies)
-        return list(set(deps))
-
     def __repr__(self) -> str:
         return (f"{super().__repr__()}, start_time={self.start_time.name!r}, "
                 f"duration={self.duration.name!r}, magnitude={self.magnitude.name!r})")
 
 
-class Step(Element):
+class Step(DependenciesProperty, Element):
     """
     An element that generates a step change in value at a specified start_time.
     """
+    _element_attrs = ["start_time", "before_value", "after_value"]
+
     def __init__(self, name: str, start_time: float|Element, before_value: float|Element, after_value: float|Element):
         super().__init__(name)
         self.start_time = as_element(start_time)
@@ -284,23 +268,17 @@ class Step(Element):
         else:
             return self.after_value.compute(context)
 
-    @property
-    def dependencies(self) -> list[Element]:
-        deps = [self.start_time, self.before_value, self.after_value]
-        for el in deps:
-            if hasattr(el, 'dependencies'):
-                deps.extend(el.dependencies)
-        return list(set(deps))
-
     def __repr__(self) -> str:
         return (f"{super().__repr__()}, start_time={self.start_time.name!r}, "
                 f"before_value={self.before_value.name!r}, after_value={self.after_value.name!r})")
 
 
-class Ramp(Element):
+class Ramp(DependenciesProperty, Element):
     """
     An element that generates a linearly increasing (or decreasing) value over a period.
     """
+    _element_attrs = ["start_time", "end_time", "slope", "initial_value"]
+
     def __init__(
             self, 
             name: str, 
@@ -328,14 +306,6 @@ class Ramp(Element):
         else:
             return initial + slp * (end - start) # Hold the value at end_time
 
-    @property
-    def dependencies(self) -> list[Element]:
-        deps = [self.start_time, self.end_time, self.slope, self.initial_value]
-        for el in deps:
-            if hasattr(el, 'dependencies'):
-                deps.extend(el.dependencies)
-        return list(set(deps))
-
     def __repr__(self) -> str:
         return (f"{super().__repr__()}, start_time={self.start_time.name!r}, "
                 f"end_time={self.end_time.name!r}, slope={self.slope.name!r}, "
@@ -346,6 +316,8 @@ class Delay3(Element):
     """
     A third-order exponential delay element, implemented as a chain of three Smooth components.
     """
+    _element_attrs = ['input_element', 'delay_time', 'initial_value']
+
     def __init__(
         self,
         name: str,
@@ -371,16 +343,6 @@ class Delay3(Element):
         # The output of Delay3 is the output of the final Smooth component
         return self.smooth3.compute(context)
 
-    @property
-    def dependencies(self) -> list[Element]:
-        # Dependencies are the input_element, the delay_time, and the internal smooth components
-        deps = [self.input_element, self.delay_time, self.smooth1, self.smooth2, self.smooth3]
-        if hasattr(self.input_element, 'dependencies'):
-            deps.extend(self.input_element.dependencies)
-        if hasattr(self.delay_time, 'dependencies'):
-            deps.extend(self.delay_time.dependencies)
-        return list(set(deps))
-
     def __repr__(self) -> str:
         return (f"{super().__repr__()}, input_element={self.input_element.name!r}, "
                 f"delay_time={self.delay_time.name!r}, initial_value={self.initial_value.name!r})")
@@ -390,6 +352,8 @@ class Initial(Element):
     """
     An element that returns the initial value of an input element.
     """
+    _element_attrs = ['input_element']
+
     def __init__(self, name: str, input_element: Element):
         super().__init__(name)
         self.input_element = input_element
@@ -406,13 +370,6 @@ class Initial(Element):
             "dt": context.get('dt', 0.0)
         }
         return self.input_element.compute(initial_context)
-
-    @property
-    def dependencies(self) -> list[Element]:
-        deps = [self.input_element]
-        if hasattr(self.input_element, 'dependencies'):
-            deps.extend(self.input_element.dependencies)
-        return list(set(deps))
 
     def __repr__(self) -> str:
         return f"{super().__repr__()}, input_element={self.input_element.name!r})"
