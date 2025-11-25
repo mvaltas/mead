@@ -1,6 +1,6 @@
 import importlib.metadata
 
-from .core import Element, Constant, Equation, Auxiliary
+from .core import Element, Constant, Equation, Auxiliary, Time
 from .components import Delay, Smooth, Table, IfThenElse, Min, Max, Pulse, Step, Ramp, Initial, Delay2, Delay3
 from .stock import Stock
 from .flow import Flow
@@ -12,6 +12,7 @@ __all__ = [
     "Element",
     "Constant",
     "Equation",
+    "Time",
     "Auxiliary",
     "Delay",
     "Smooth",
@@ -24,7 +25,7 @@ __all__ = [
     "Ramp",
     "Initial",
     "Delay2",
-    "Delay3", # Added Delay3
+    "Delay3",
     "Stock",
     "Flow",
     "Model",

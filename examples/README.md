@@ -1,5 +1,10 @@
 # List of examples using MEAD
 
+## Kaibab Plateau
+
+* [Donella Meadows - System Dynamics Model: Kaibab Deer Population](https://youtu.be/2rUXm5b-gZM?si=SIQX9VZDbFUchQLS)
+
+![Kaibab-Plateau](imgs/kaibab_plateau.png)
 
 ## Lotka–Volterra (Predator Prey)
 

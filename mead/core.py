@@ -102,6 +102,19 @@ class Auxiliary(Element):
         return f"{super().__repr__()}, equation={self.equation!r})"
 
 
+class Time(Element):
+    """ Returns current time of simulation
+    """
+    def __init__(self, name: str):
+        super().__init__(name)
+    
+    def compute(self, context: dict[str, Any]) -> float:
+        return context.get("time", 0.0)
+
+    def __repr__(self) -> str:
+        return f"{super().__repr__()})"
+
+
 import operator
 
 # Map operator symbols to functions
