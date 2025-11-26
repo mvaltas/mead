@@ -77,7 +77,7 @@ food.add_inflow(food_increase)
 # Food outflow
 food_demand = Auxiliary("Food Demand", deer * daily_req)
 # Food loss is capped to its demand or to the food available
-food_loss = IfThenElse("Final Food Demand", food_demand - food, food, food_demand)
+food_loss = IfThenElse("Final Food Demand", food_demand >= food, food, food_demand)
 # Food consumed
 food_consumption = Flow("Food Consumption", food_loss)
 food.add_outflow(food_consumption)

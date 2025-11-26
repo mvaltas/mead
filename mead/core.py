@@ -40,6 +40,21 @@ class Element:
     def __neg__(self) -> Equation:
         return Equation(0, "-", self)  # Negation as 0 - self
 
+    # Comparisons...
+    # Overriding __eq__ leads to hash errors, for numerical
+    # comparison such as a == b, we can (a <= b) * (a >= b) == 1
+    def __gt__(self, other) -> Equation:
+        return Equation(self, ">", other)
+
+    def __lt__(self, other) -> Equation:
+        return Equation(self, "<", other)
+
+    def __ge__(self, other) -> Equation:
+        return Equation(self, ">=", other)
+
+    def __le__(self, other) -> Equation:
+        return Equation(self, "<=", other)
+
     def compute(self, context: dict[str, Any]) -> float:
         """Computes the value of the element based on the current model context."""
         # By default, an element's value is its current state in the model
@@ -130,6 +145,10 @@ _OPERATORS = {
     "-": operator.sub,
     "*": operator.mul,
     "/": operator.truediv,
+    ">": operator.gt,
+    "<": operator.lt,
+    ">=": operator.ge,
+    "<=": operator.le,
 }
 
 
