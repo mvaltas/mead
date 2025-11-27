@@ -9,18 +9,18 @@ if TYPE_CHECKING:
     from mead.model import Model
 
 
-class Hold(DependencyMixin, Element):
+class Delay(DependencyMixin, Element):
     """
-    An element that returns a delayed value of an input Stock.
+    An element that returns a delayed value of an input.
     Requires the model to manage history.
     """
 
     _element_attrs = ["input_stock", "delay_time"]
 
-    def __init__(self, name: str, input_stock: Element, hold_time: float | Element):
+    def __init__(self, name: str, input_stock: Element, delay_time: float | Element):
         super().__init__(name)
         self.input_stock = input_stock
-        self.delay_time = as_element(hold_time)
+        self.delay_time = as_element(delay_time)
 
     def compute(self, context: dict[str, Any]) -> float:
         history_lookup = context.get("history_lookup")

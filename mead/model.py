@@ -60,13 +60,12 @@ class Model:
         """
         Looks up the historical value of a named element at a specific time in the past.
         """
-        if not self._history:
-            return 0.0
-
         target_time = current_sim_time - delay_time
 
-        # default to 0.0 if access time precedes history
-        if target_time < self._history[0][0]:
+        if not self._history or target_time < self._history[0][0]:
+            element = self.elements.get(name)
+            if isinstance(element, Stock):
+                return element.initial_value
             return 0.0
 
         for history_time, history_values in reversed(self._history):

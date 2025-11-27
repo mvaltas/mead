@@ -48,8 +48,8 @@ results = model.run(duration=200, method="euler")
 
 print(results.head(10))
 print(f"\nFinal populations:")
-print(f"  Youth: {results['youth'].iloc[-1]:.2f}")
-print(f"  Adults: {results['adults'].iloc[-1]:.2f}")
-print(f"  Elderly: {results['elderly'].iloc[-1]:.2f}")
+print(f"  Youth: {results.loc[200.0, 'youth']:.2f}")
+print(f"  Adults: {results.loc[200.0, 'adults']:.2f}")
+print(f"  Elderly: {results.loc[200.0, 'elderly']:.2f}")
 
 model.plot(results, columns=["youth", "adults", "elderly"])

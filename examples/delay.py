@@ -10,7 +10,7 @@ than Delay3, but more so than the first-order Smooth.
 
 from mead.core import Constant
 from mead.model import Model
-from mead.components import Hold, Delay2, Delay3, Step, Smooth
+from mead.components import Delay, Delay2, Delay3, Step, Smooth
 
 with Model(name="Delay2 Example Model", dt=0.125) as model:
     # Define an input step function
@@ -22,11 +22,11 @@ with Model(name="Delay2 Example Model", dt=0.125) as model:
     )
 
 
-    # Simple hold just holds for N steps, no smoothing
-    hold = Hold(
-            name="Hold", 
+    # Simple delay just holds for N steps, no smoothing
+    delay = Delay(
+            name="Delay", 
             input_stock=step_input, 
-            hold_time = 3.0
+            delay_time = 3.0
     )
 
     # Define a Delay2 component
@@ -62,7 +62,7 @@ results = model.run(duration=30.0)
 # Plotting the results using model.plot
 model.plot(results, columns=[
     'Step Input',
-    'Hold',
+    'Delay',
     'Delayed Output (2nd Order)',
     'Delayed Output (3rd Order)',
     'Smooth Output (1st Order)',

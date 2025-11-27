@@ -1,5 +1,5 @@
 from mead.core import Constant
-from mead.components import Hold  # Import Delay from its new location
+from mead import Delay
 from mead.stock import Stock
 from mead.flow import Flow
 from mead.model import Model
@@ -69,10 +69,10 @@ def test_goal_seeking_model():
     results = model.run(duration=10)
 
     # Check that inventory moves towards target
-    assert results["inventory"].iloc[0] == 100
-    assert results["inventory"].iloc[1] > 100
+    assert results.loc[0.0, "inventory"] == 100
+    assert results.loc[1.0, "inventory"] > 100
     # The calculated final value for dt=1, duration=10, initial=100, target=1000, adj_time=4
-    assert results["inventory"].iloc[-1] == pytest.approx(949.3178367614746)
+    assert results.loc[10.0, "inventory"] == pytest.approx(949.3178367614746)
 
 
 def test_delay_element_in_model():
@@ -86,7 +86,7 @@ def test_delay_element_in_model():
     input_stock.add_inflow(input_flow)
 
     # Delayed value of input_stock
-    delayed_val = Hold(
+    delayed_val = Delay(
         "delayed_val", input_stock, Constant("time_units", 3.0)
     )  # Delay by 3 time units
 
@@ -109,24 +109,24 @@ def test_delay_element_in_model():
     assert results.loc[4, "input_stock"] == 90
     assert results.loc[5, "input_stock"] == 100
 
-    # output_stock accumulates the delayed input_stock values
-    # delayed_val is 0 for t=0,1,2 (delay time = 3)
-    # At t=3, delayed_val gets value from input_stock at t=0 (50) -> inflow = 50. output_stock for t=3 is 0.
-    # At t=4, delayed_val gets value from input_stock at t=1 (60) -> inflow = 60. output_stock for t=4 is 50.
-    # At t=5, delayed_val gets value from input_stock at t=2 (70) -> inflow = 70. output_stock for t=5 is 50+60=110.
+    # With the corrected `_lookup_history`, delayed_val will be 50 (the initial
+    # value of input_stock) for the first 3 time steps (t=0, 1, 2).
+    # output_stock accumulates this flow.
+    # t=0: output_stock starts at 0.
+    # t=1: output_stock becomes 0 + 50*dt = 50.
+    # t=2: output_stock becomes 50 + 50*dt = 100.
+    # t=3: output_stock becomes 100 + 50*dt = 150.
+    # at t=3, delayed_val looks up input_stock at t=0, which is 50. Inflow is 50.
+    # at t=4, delayed_val looks up input_stock at t=1, which is 60. Inflow is 60.
+    # t=4: output_stock becomes 150 + 50*dt = 200.
+    # t=5: output_stock becomes 200 + 60*dt = 260.
 
-    assert results.loc[0, "output_stock"] == 0
-    assert results.loc[1, "output_stock"] == 0
-    assert results.loc[2, "output_stock"] == 0
-    assert (
-        results.loc[3, "output_stock"] == 0
-    )  # At start of t=3, output_stock is still 0
-    assert results.loc[4, "output_stock"] == pytest.approx(
-        50
-    )  # At start of t=4, output_stock has accumulated 50 from t=3
-    assert results.loc[5, "output_stock"] == pytest.approx(
-        50 + 60
-    )  # At start of t=5, output_stock has accumulated 50+60 from t=3, t=4
+    assert results.loc[0, "output_stock"] == pytest.approx(0)
+    assert results.loc[1, "output_stock"] == pytest.approx(50)
+    assert results.loc[2, "output_stock"] == pytest.approx(100)
+    assert results.loc[3, "output_stock"] == pytest.approx(150)
+    assert results.loc[4, "output_stock"] == pytest.approx(200)
+    assert results.loc[5, "output_stock"] == pytest.approx(260)
 
 
 def test_smooth_element_in_model():
