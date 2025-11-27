@@ -1,4 +1,4 @@
-from mead import Model, Stock, Flow, Constant, Delay
+from mead import Model, Stock, Flow, Constant, Hold
 
 # A supply chain model with delayed replenishment
 model = Model(name="Simple Supply Chain", dt=1)
@@ -32,7 +32,7 @@ inventory.add_outflow(sales_flow)
 
 # Inflow to inventory: delayed shipments from port
 # We delay the value of the 'port' stock by 4 time units.
-shipments_delayed = Delay("shipments_delayed_val", port, delay_time=4)
+shipments_delayed = Hold("shipments_delayed_val", port, hold_time=4)
 shipments_flow = Flow("shipments", equation=shipments_delayed)
 inventory.add_inflow(shipments_flow)
 

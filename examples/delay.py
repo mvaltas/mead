@@ -1,29 +1,69 @@
-from mead import Model, Stock
-from mead.flow import Flow
-from mead.components import Delay
+"""
+Illustrates the use of the Delay2 component, which simulates a second-order
+exponential delay.
 
-model = Model("Functions Demo", dt=1.0)
+This example sets up a simple model where a Step input is fed into Delay2, Delay3,
+and a first-order Smooth component. The outputs should show characteristic
+delayed and S-shaped responses, with Delay2 being less delayed and less S-shaped
+than Delay3, but more so than the first-order Smooth.
+"""
 
-# Moving from source to target with delay
-source_stock = Stock("source_stock", initial_value=0)
-target_stock = Stock("target_stock", initial_value=0)
+from mead.core import Constant
+from mead.model import Model
+from mead.components import Hold, Delay2, Delay3, Step, Smooth
 
-# Source has a rate of 1
-source_inflow_rate = Flow("source_inflow", 1.0)
-source_stock.add_inflow(source_inflow_rate)
+with Model(name="Delay2 Example Model", dt=0.125) as model:
+    # Define an input step function
+    step_input = Step(
+        name="Step Input",
+        start_time=Constant("Step Start Time", 10.0),
+        before_value=Constant("Before Step Value", 0.0),
+        after_value=Constant("After Step Value", 100.0),
+    )
 
-# Create a delay of 3 steps and apply as the source
-# of the flow into target stock
-delayed_output = Delay("delay_inflow_by_3", source_inflow_rate, 3.0)
-target_stock.add_inflow(Flow("delayed_by_3", delayed_output))
 
-# Source inflow rate must be calculated to apply the delay
-# but not the delay itself due the connection to source_inflow_rate
-model.add(source_stock, target_stock, source_inflow_rate)
+    # Simple hold just holds for N steps, no smoothing
+    hold = Hold(
+            name="Hold", 
+            input_stock=step_input, 
+            hold_time = 3.0
+    )
+
+    # Define a Delay2 component
+    delay_time = Constant("Delay Time", 5.0)  # Total delay time
+    delayed_output_2 = Delay2(
+        name="Delayed Output (2nd Order)",
+        input_element=step_input,
+        delay_time=delay_time,
+        initial_value=Constant("Initial Delayed Value 2", 0.0),
+    )
+
+    # For comparison, also include Delay3
+    delayed_output_3 = Delay3(
+        name="Delayed Output (3rd Order)",
+        input_element=step_input,
+        delay_time=delay_time,
+        initial_value=Constant("Initial Delayed Value 3", 0.0),
+    )
+
+    # For comparison, also include a first-order smooth
+    smooth_output = Smooth(
+        name="Smooth Output (1st Order)",
+        target_value=step_input,
+        smoothing_time=Constant(
+            "Smoothing Time (1st Order)", 5.0
+        ),  # Same time constant for comparison
+        initial_value=Constant("Initial Smooth Value", 0.0),
+    )
 
 # Run the simulation
-results = model.run(duration=20)
-print(results.tail(20))
+results = model.run(duration=30.0)
 
-# Plotting selected key results
-model.plot(results, columns=["source_stock", "target_stock"])
+# Plotting the results using model.plot
+model.plot(results, columns=[
+    'Step Input',
+    'Hold',
+    'Delayed Output (2nd Order)',
+    'Delayed Output (3rd Order)',
+    'Smooth Output (1st Order)',
+    ])

@@ -1,5 +1,5 @@
 from mead.core import Constant
-from mead.components import Delay  # Import Delay from its new location
+from mead.components import Hold  # Import Delay from its new location
 from mead.stock import Stock
 from mead.flow import Flow
 from mead.model import Model
@@ -86,7 +86,7 @@ def test_delay_element_in_model():
     input_stock.add_inflow(input_flow)
 
     # Delayed value of input_stock
-    delayed_val = Delay(
+    delayed_val = Hold(
         "delayed_val", input_stock, Constant("time_units", 3.0)
     )  # Delay by 3 time units
 

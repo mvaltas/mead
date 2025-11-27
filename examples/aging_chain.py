@@ -1,7 +1,6 @@
 """
 Aging Chain Model (Birth-Death-Aging) with Symbolic API.
 """
-
 from mead import Stock, Flow, Model, Constant
 
 # 1. Start with a model context
