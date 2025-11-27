@@ -22,7 +22,6 @@ with Model(name="Simple Supply Chain", dt=1) as model:
     )  # Assuming it clears port
     port.add_outflow(logistics_eff_flow)
 
-
     # Outflow from inventory: sales from inventory
     sales_rate = Constant("sales_rage", 1.0)
     sales_flow = Flow(

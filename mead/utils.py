@@ -34,4 +34,3 @@ class DependencyMixin:
                     if isinstance(item, Element):
                         deps.append(item)
         return list(set(deps))
-

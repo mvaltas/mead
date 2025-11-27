@@ -11,5 +11,4 @@ model.add(stock, flow)
 
 results = model.run(duration=10)
 
-model.plot(results, columns = ['stock', 'year'])
-
+model.plot(results, columns=["stock", "year"])

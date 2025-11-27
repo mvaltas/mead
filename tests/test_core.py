@@ -59,7 +59,8 @@ def test_gt_boolean():
     eq = c1 > c2
     assert eq.compute(dummy_context) == 1
     eq = c2 > c1
-    assert eq.compute(dummy_context) == 0 
+    assert eq.compute(dummy_context) == 0
+
 
 def test_lt_boolean():
     c1 = Constant("c1", 20)
@@ -67,29 +68,32 @@ def test_lt_boolean():
     eq = c2 < c1
     assert eq.compute(dummy_context) == 1
     eq = c1 < c2
-    assert eq.compute(dummy_context) == 0 
+    assert eq.compute(dummy_context) == 0
+
 
 def test_ge_boolean():
     c1 = Constant("c1", 20)
     c2 = Constant("c2", 20)
     c3 = Constant("c3", 2)
     eq = c1 >= c2
-    assert eq.compute(dummy_context) == 1 
+    assert eq.compute(dummy_context) == 1
     eq = c1 >= c3
-    assert eq.compute(dummy_context) == 1 
+    assert eq.compute(dummy_context) == 1
     eq = c3 >= c1
     assert eq.compute(dummy_context) == 0
+
 
 def test_le_boolean():
     c1 = Constant("c1", 20)
     c2 = Constant("c2", 20)
     c3 = Constant("c3", 2)
     eq = c1 <= c2
-    assert eq.compute(dummy_context) == 1 
+    assert eq.compute(dummy_context) == 1
     eq = c2 <= c1
     assert eq.compute(dummy_context) == 1
     eq = c1 <= c3
-    assert eq.compute(dummy_context) == 0 
+    assert eq.compute(dummy_context) == 0
+
 
 def test_mixed_operations_with_literals():
     c1 = Constant("c1", 10)

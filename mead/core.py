@@ -95,8 +95,7 @@ class Constant(Element):
 
 
 class Function(Element):
-    r""" A callable function with no dependencies
-    """
+    r"""A callable function with no dependencies"""
 
     def __init__(self, name: str, func: Callable[[dict[str, Any]], float]):
         r"""
@@ -137,11 +136,11 @@ class Auxiliary(Element):
 
 
 class Time(Element):
-    """ Returns current time of simulation
-    """
+    """Returns current time of simulation"""
+
     def __init__(self, name: str):
         super().__init__(name)
-    
+
     def compute(self, context: dict[str, Any]) -> float:
         return context.get("time", 0.0)
 

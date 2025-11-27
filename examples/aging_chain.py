@@ -1,6 +1,7 @@
 """
 Aging Chain Model (Birth-Death-Aging) with Symbolic API.
 """
+
 from mead import Stock, Flow, Model, Constant
 
 # 1. Start with a model context
@@ -13,7 +14,6 @@ with Model("Aging Chain", dt=0.25) as model:
     youth_death_rate = Constant("youth_death_rate", 0.001)
     adult_death_rate = Constant("adult_death_rate", 0.005)
     elderly_death_rate = Constant("elderly_death_rate", 0.05)
-
 
     # 3. Define stocks
     youth = Stock("youth", initial_value=1000)

@@ -21,13 +21,8 @@ with Model(name="Delay2 Example Model", dt=0.125) as model:
         after_value=Constant("After Step Value", 100.0),
     )
 
-
     # Simple delay just holds for N steps, no smoothing
-    delay = Delay(
-            name="Delay", 
-            input_stock=step_input, 
-            delay_time = 3.0
-    )
+    delay = Delay(name="Delay", input_stock=step_input, delay_time=3.0)
 
     # Define a Delay2 component
     delay_time = Constant("Delay Time", 5.0)  # Total delay time
@@ -60,10 +55,13 @@ with Model(name="Delay2 Example Model", dt=0.125) as model:
 results = model.run(duration=30.0)
 
 # Plotting the results using model.plot
-model.plot(results, columns=[
-    'Step Input',
-    'Delay',
-    'Delayed Output (2nd Order)',
-    'Delayed Output (3rd Order)',
-    'Smooth Output (1st Order)',
-    ])
+model.plot(
+    results,
+    columns=[
+        "Step Input",
+        "Delay",
+        "Delayed Output (2nd Order)",
+        "Delayed Output (3rd Order)",
+        "Smooth Output (1st Order)",
+    ],
+)
