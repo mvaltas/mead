@@ -1,5 +1,6 @@
 import mead as m
 
+
 def test_step():
     with m.Model("test", dt=1.0) as model:
         m.Step("step", start_time=5, before_value=10, after_value=20)
@@ -143,7 +144,7 @@ def test_delay3():
 def test_initial():
     with m.Model("test", dt=1.0) as model:
         s = m.Stock("s", initial_value=50)
-        s.add_inflow(m.Flow("flow",m.Constant("inflow", 10)))
+        s.add_inflow(m.Flow("flow", m.Constant("inflow", 10)))
         m.Initial("initial_s", s)
 
     results = model.run(duration=5)
