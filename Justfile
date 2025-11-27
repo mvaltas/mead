@@ -20,3 +20,11 @@ version:
 
 @run param:
  - uv run python {{param}}
+
+verify:
+  uv run python ./examples/aging_chain.py
+  uv run python ./examples/harmonic_oscillator.py
+  uv run python ./examples/kaibab_plateau.py
+  uv run python ./examples/cooling.py
+  uv run python ./examples/predator_prey.py
+  uv run python ./examples/exponential_growth.py

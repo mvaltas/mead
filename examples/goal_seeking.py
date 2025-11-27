@@ -27,5 +27,5 @@ model.add(inventory, target_val, adjustment_time, adjustment)
 results = model.run(duration=30)
 
 print(results.head(10))
-print(f"\nFinal inventory: {results['inventory'].iloc[-1]:.2f}")
+print(f"\nFinal inventory: {results.loc[30, 'inventory']:.2f}")
 model.plot(results)

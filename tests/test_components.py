@@ -114,8 +114,8 @@ def test_smooth():
     assert results.loc[1.0, "smooth"] > 100  # at time 1.0
     assert results.loc[1.25, "smooth"] > results.loc[1.0, "smooth"]
     # Check that it approaches 200
-    assert results["smooth"].iloc[-1] > 150
-    assert results["smooth"].iloc[-1] < 200
+    assert results.loc[5, "smooth"] > 150
+    assert results.loc[5, "smooth"] < 200
 
 
 def test_delay():

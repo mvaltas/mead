@@ -34,8 +34,8 @@ model.add(m, k, c, x, v, dx, dv)
 results = model.run(duration=10)
 
 print(results.head(10))
-print(f"\nFinal position: {results['position'].iloc[-1]:.2f}")
-print(f"\nFinal velocity: {results['velocity'].iloc[-1]:.2f}")
+print(f"\nFinal position: {results.loc[10, 'position']:.2f}")
+print(f"\nFinal velocity: {results.loc[10, 'velocity']:.2f}")
 
 # 8. Plot
 model.plot(results, columns=["dx", "dv", "position"])

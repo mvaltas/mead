@@ -21,6 +21,6 @@ model.add(population, birth_rate, births)
 results = model.run(duration=50, method="euler")
 
 print(results.head(10))
-print(f"\nFinal population: {results['population'].iloc[-1]:.2f}")
+print(f"\nFinal population: {results.loc[50, 'population']:.2f}")
 
 model.plot(results)

@@ -49,7 +49,7 @@ model.add(
 results = model.run(duration=100, method="rk4")
 
 print(results.tail(10))
-print(f"\nFinal prey: {results['prey'].iloc[-1]:.2f}")
-print(f"Final predators: {results['predators'].iloc[-1]:.2f}")
+print(f"\nFinal prey: {results.loc[100, 'prey']:.2f}")
+print(f"Final predators: {results.loc[100, 'predators']:.2f}")
 
 model.plot(results)
