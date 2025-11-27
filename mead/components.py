@@ -1,9 +1,9 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Sequence, Tuple
 
-from mead.core import Element, DependenciesProperty
+from mead.core import Element
 from mead.stock import Stock
-from mead.utils import as_element
+from mead.utils import as_element, DependenciesProperty
 
 if TYPE_CHECKING:
     from mead.model import Model

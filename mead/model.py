@@ -3,7 +3,8 @@ from typing import Literal, Type, Any, List, Optional
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-from mead.core import Element, DependenciesProperty
+from mead.core import Element
+from mead.utils import DependenciesProperty
 from mead.stock import Stock
 from .solver import Solver, EulerSolver, RK4Solver
 
@@ -182,7 +183,7 @@ class Model:
 
         fig, ax1 = plt.subplots(figsize=(12, 7))
 
-        colors = plt.cm.get_cmap("Dark2", len(columns))
+        colors = plt.get_cmap("Dark2", len(columns))
         line1_handles = []
         for i, col in enumerate(columns):
             (line,) = ax1.plot(results.index, results[col], label=col, color=colors(i))
