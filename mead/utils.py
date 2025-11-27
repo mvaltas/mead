@@ -12,7 +12,7 @@ def as_element(value: Any) -> Element:
             raise ValueError(f"Can't handle type of {value}")
 
 
-class DependenciesProperty:
+class DependencyMixin:
     """
     Provides a reusable implementation for the `dependencies` property.
     Subclasses should define a class-level attribute `_element_attrs` (Sequence[str])

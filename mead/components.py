@@ -3,13 +3,13 @@ from typing import TYPE_CHECKING, Any, Sequence, Tuple
 
 from mead.core import Element
 from mead.stock import Stock
-from mead.utils import as_element, DependenciesProperty
+from mead.utils import as_element, DependencyMixin
 
 if TYPE_CHECKING:
     from mead.model import Model
 
 
-class Delay(DependenciesProperty, Element):
+class Delay(DependencyMixin, Element):
     """
     An element that returns a delayed value of an input Stock.
     Requires the model to manage history.
@@ -38,7 +38,7 @@ class Delay(DependenciesProperty, Element):
         return f"{super().__repr__()}, input_stock={self.input_stock.name!r}, delay_time={self.delay_time})"
 
 
-class Smooth(DependenciesProperty, Element):
+class Smooth(DependencyMixin, Element):
     """
     An element that computes an exponential smooth of an input.
     smooth_value(t) = smooth_value(t-dt) + (dt / smoothing_time) * (input_value(t) - smooth_value(t-dt))
@@ -90,7 +90,7 @@ class Smooth(DependenciesProperty, Element):
         return f"{super().__repr__()}, input_element={self.target_value.name!r}, smoothing_time={self.smoothing_time.name!r}, initial_value={self.initial_value})"
 
 
-class Table(DependenciesProperty, Element):
+class Table(DependencyMixin, Element):
     """
     An element that performs a lookup from a table (functional relationship)
     using linear interpolation.
@@ -136,7 +136,7 @@ class Table(DependenciesProperty, Element):
         return f"{super().__repr__()}, input_element={self.input_element.name!r}, points={self.points!r})"
 
 
-class IfThenElse(DependenciesProperty, Element):
+class IfThenElse(DependencyMixin, Element):
     """
     An element that represents conditional logic.
     If condition > 0, returns the true_element's value, else returns the false_element's value.
@@ -170,7 +170,7 @@ class IfThenElse(DependenciesProperty, Element):
         )
 
 
-class Min(DependenciesProperty, Element):
+class Min(DependencyMixin, Element):
     """
     An element that returns the minimum of its input elements.
     """
@@ -191,7 +191,7 @@ class Min(DependenciesProperty, Element):
         return f"{super().__repr__()}, inputs=[{input_names}])"
 
 
-class Max(DependenciesProperty, Element):
+class Max(DependencyMixin, Element):
     """
     An element that returns the maximum of its input elements.
     """
@@ -212,7 +212,7 @@ class Max(DependenciesProperty, Element):
         return f"{super().__repr__()}, inputs=[{input_names}])"
 
 
-class Pulse(DependenciesProperty, Element):
+class Pulse(DependencyMixin, Element):
     """
     An element that generates a pulse (a temporary burst) of a given magnitude.
     """
@@ -248,7 +248,7 @@ class Pulse(DependenciesProperty, Element):
         )
 
 
-class Step(DependenciesProperty, Element):
+class Step(DependencyMixin, Element):
     """
     An element that generates a step change in value at a specified start_time.
     """
@@ -283,7 +283,7 @@ class Step(DependenciesProperty, Element):
         )
 
 
-class Ramp(DependenciesProperty, Element):
+class Ramp(DependencyMixin, Element):
     """
     An element that generates a linearly increasing (or decreasing) value over a period.
     """
@@ -326,7 +326,7 @@ class Ramp(DependenciesProperty, Element):
         )
 
 
-class Delay2(DependenciesProperty, Element):
+class Delay2(DependencyMixin, Element):
     """
     A second-order exponential delay element, implemented as a chain of two Smooth components.
     """
@@ -380,7 +380,7 @@ class Delay2(DependenciesProperty, Element):
         )
 
 
-class Delay3(DependenciesProperty, Element):
+class Delay3(DependencyMixin, Element):
     """
     A third-order exponential delay element, implemented as a chain of three Smooth components.
     """
@@ -441,7 +441,7 @@ class Delay3(DependenciesProperty, Element):
         )
 
 
-class Initial(DependenciesProperty, Element):
+class Initial(DependencyMixin, Element):
     """
     An element that returns the initial value of an input element.
     """

@@ -4,7 +4,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 from mead.core import Element
-from mead.utils import DependenciesProperty
+from mead.utils import DependencyMixin
 from mead.stock import Stock
 from .solver import Solver, EulerSolver, RK4Solver
 
