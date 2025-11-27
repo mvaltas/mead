@@ -56,6 +56,10 @@ class Element:
     def __le__(self, other) -> Equation:
         return Equation(self, "<=", other)
 
+    @property
+    def dependencies(self) -> list[Element]:
+        return []
+
     def compute(self, context: dict[str, Any]) -> float:
         """Computes the value of the element based on the current model context."""
         # By default, an element's value is its current state in the model

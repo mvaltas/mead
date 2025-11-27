@@ -27,15 +27,13 @@ class DependenciesProperty:
             attr_value = getattr(self, attr_name)
             if isinstance(attr_value, Element):
                 deps.append(attr_value)
-                if hasattr(attr_value, "dependencies"):
-                    deps.extend(attr_value.dependencies)
+                deps.extend(attr_value.dependencies)
             elif isinstance(
                 attr_value, list
             ):  # For elements like Min/Max that take a list of inputs
                 for item in attr_value:
                     if isinstance(item, Element):
                         deps.append(item)
-                        if hasattr(item, "dependencies"):
-                            deps.extend(item.dependencies)
+                        deps.extend(item.dependencies)
         return list(set(deps))
 
