@@ -4,8 +4,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 from mead.core import Element
-from mead.utils import DependencyMixin
 from mead.stock import Stock
+from mead.context import current_model
 from .solver import Solver, EulerSolver, RK4Solver
 
 IntegrationMethod = Literal["euler", "rk4"]
@@ -27,6 +27,18 @@ class Model:
             "rk4": RK4Solver,
         }
         self._history: list[tuple[float, dict[str, float]]] = []
+        self._context_token: Optional[Any] = None
+
+    def __enter__(self):
+        """Set this model as the active context."""
+        self._context_token = current_model.set(self)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Reset the active model context."""
+        if self._context_token:
+            current_model.reset(self._context_token)
+            self._context_token = None
 
     def add(self, *elements: Element):
         """Adds one or more elements to the model.

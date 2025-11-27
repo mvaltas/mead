@@ -60,17 +60,12 @@ class Smooth(DependencyMixin, Element):
         self.initial_value = as_element(initial_value)
 
     def compute(self, context: dict[str, Any]) -> float:
-        current_time = context.get("time")
+        current_time = context["time"]
         if current_time == 0.0:
             return self.initial_value.compute(context)
 
-        history_lookup = context.get("history_lookup")
-        dt = context.get("dt")
-
-        if not history_lookup or dt is None:
-            raise RuntimeError(
-                "Smooth element requires 'history_lookup' and 'dt' in the context."
-            )
+        history_lookup = context["history_lookup"]
+        dt = context["dt"]
 
         input_val = self.target_value.compute(context)
         smoothing_time_val = self.smoothing_time.compute(context)
@@ -232,7 +227,7 @@ class Pulse(DependencyMixin, Element):
         self.magnitude = as_element(ammount)
 
     def compute(self, context: dict[str, Any]) -> float:
-        current_time = context.get("time")
+        current_time = context["time"]
         start = self.start_time.compute(context)
         dur = self.duration.compute(context)
         mag = self.magnitude.compute(context)
@@ -268,7 +263,7 @@ class Step(DependencyMixin, Element):
         self.after_value = as_element(after_value)
 
     def compute(self, context: dict[str, Any]) -> float:
-        current_time = context.get("time")
+        current_time = context["time"]
         start = self.start_time.compute(context)
 
         if current_time < start:

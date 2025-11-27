@@ -1,6 +1,8 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Sequence
+from typing import TYPE_CHECKING, Any
 from collections.abc import Callable
+
+from mead.context import current_model
 
 # prevents circular import
 if TYPE_CHECKING:
@@ -13,6 +15,15 @@ class Element:
     def __init__(self, name: str):
         self.name = name
         self.model: Model | None = None
+
+        # If we are inside a Model context, automatically add this element
+        active_model = current_model.get()
+        if active_model and not self.name.startswith("literal_"):
+            try:
+                active_model.add(self)
+            except ValueError:
+                # Ignore if the element (e.g., an equation) is already present
+                pass
 
     def __add__(self, other: Any) -> Equation:
         return Equation(self, "+", other)
