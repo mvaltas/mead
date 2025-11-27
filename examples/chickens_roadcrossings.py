@@ -18,11 +18,7 @@ with Model("Chickens and Road Crossings", dt=1) as model:
     # lost chickens to fatal cross...
     chickens.add_outflow(road_cross)
 
-
+# Run the simulation for 100 days
 results = model.run(duration=100)
-model.plot(results, columns = [
-    'Chickens',
-    'Fatal Crossing',
-    #'Egg Lays',
-    #'Egg Hatch',
-    ])
+# Plot the number of chickens
+model.plot(results, columns=["Chickens"])
