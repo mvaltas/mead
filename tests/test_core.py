@@ -1,4 +1,4 @@
-from mead.core import Constant, Element, Auxiliary
+from mead.core import Constant, Element, Auxiliary, Function
 
 # A dummy context for testing compute methods
 dummy_context = {
@@ -145,3 +145,12 @@ def test_equation_dependencies_direct():
     deps2 = eq2.dependencies
     assert eq1 in deps2  # Direct dependency is eq1
     assert len(deps2) == 1  # Only eq1 (literal 2 is excluded)
+
+
+def test_function():
+    # an external defined function that takes context
+    def some_test(ctx):
+        return ctx["state"]["stock_val"] + 20.21
+
+    f1 = Function("f1", some_test)
+    assert f1.compute(dummy_context) == 30.21

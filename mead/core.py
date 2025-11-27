@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Sequence
+from collections.abc import Callable
 
 # prevents circular import
 if TYPE_CHECKING:
@@ -101,6 +102,30 @@ class Constant(Element):
 
     def compute(self, context: dict[str, Any]) -> float:
         return self.value
+
+    def __repr__(self) -> str:
+        return f"{super().__repr__()}, value={self.value})"
+
+
+class Function(Element):
+    r""" A callable function with no dependencies
+    """
+
+    def __init__(self, name: str, func: Callable[[dict[str, Any]], float]):
+        r"""
+        Arguments
+        ---------
+        name : str
+            A unique name in the model to refer to this element
+        func : Callable[ctx, float]
+            A function in the form of `function(ctx) -> float` that will
+            be called during model processing.
+        """
+        super().__init__(name)
+        self.value = func
+
+    def compute(self, context: dict[str, Any]) -> float:
+        return self.value(context)
 
     def __repr__(self) -> str:
         return f"{super().__repr__()}, value={self.value})"
