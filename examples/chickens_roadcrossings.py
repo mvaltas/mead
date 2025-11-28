@@ -1,4 +1,4 @@
-from mead import Model, Stock, Flow, Delay, Auxiliary
+from mead import Model, Stock, Flow, Delay, Auxiliary, Policy, Constant
 
 with Model("Chickens and Road Crossings", dt=1) as model:
     chickens = Stock("Chickens", initial_value=10)
@@ -17,8 +17,11 @@ with Model("Chickens and Road Crossings", dt=1) as model:
     chickens.add_inflow(egg_hatch)
     # lost chickens to fatal cross...
     chickens.add_outflow(road_cross)
+    p = Policy("by chickens", chickens < 5, 5, apply=-1)
+    f = Flow("chickens bought", p)
+    chickens.add_inflow(f)
 
 # Run the simulation for 100 days
 results = model.run(duration=100)
 # Plot the number of chickens
-model.plot(results, columns=["Chickens"])
+model.plot(results, columns=["Chickens", "by chickens"])

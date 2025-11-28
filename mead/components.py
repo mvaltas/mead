@@ -466,3 +466,51 @@ class Initial(DependencyMixin, Element):
 
     def __repr__(self) -> str:
         return f"{super().__repr__()}, input_element={self.input_element.name!r})"
+
+
+class Policy(DependencyMixin, Element):
+    """Models an intervention when condition is met"""
+
+    _element_attrs = ["condition", "effect"]
+
+    def __init__(
+        self, name: str, condition: Element, effect: float | Element, apply: int = 1
+    ):
+        """
+        Args
+        ----
+            condition: A condition that if True will trigger the policy
+            effect: Resulting effect
+            apply(int): How many times the policy will by applied, -1 == always
+        """
+        super().__init__(name)
+        self.condition = condition
+        self.effect = as_element(effect)
+        self.application_counter = apply
+        self._apply_mem: dict[float, float] = {}
+
+    def compute(self, context: dict[str, Any]) -> float:
+        time = context["time"]
+        dt = context["dt"]
+        # if policy was applied to this time, repeat
+        # the result. Otherwise the `application_counter` will
+        # fail to apply correctly
+        if time in self._apply_mem:
+            return self._apply_mem[time]
+
+        cond = self.condition.compute(context)
+        # if counter < 0, always apply policy
+        if self.application_counter == 0:
+            return 0.0
+        elif cond == True:
+            # appling policy, decrement application
+            self.application_counter -= 1
+            result = self.effect.compute(context) / dt
+            # save results
+            self._apply_mem[time] = result
+            return result
+        else:
+            return 0.0
+
+    def __repr__(self) -> str:
+        return f"{super().__repr__()}, condition={self.condition!r}, effect={self.effect!r})"

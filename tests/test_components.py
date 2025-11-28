@@ -153,3 +153,46 @@ def test_initial():
     assert results.loc[0.0, "initial_s"] == 50
     assert results.loc[1.0, "initial_s"] == 50  # Should always be 50
     assert results.loc[5.0, "initial_s"] == 50
+
+
+def test_policy_apply_once():
+    with m.Model("test", dt=1.0) as model:
+        s = m.Stock("s", initial_value=50)
+        s.add_outflow(m.Flow("outflow", m.Constant("out_rate", 10)))
+        p = m.Policy("p", s <= 10, 10)
+        s.add_inflow(m.Flow("policy", p))
+
+    results = model.run(duration=6)
+    assert results.loc[0.0, "s"] == 50
+    assert results.loc[4.0, "s"] == 10  # steady decline -10/dt
+    assert results.loc[5.0, "s"] == 10  # policy triggered +10
+    assert results.loc[6.0, "s"] == 0  # policy was applied just once
+
+
+def test_policy_applied_multiple():
+    with m.Model("test", dt=1.0) as model:
+        s = m.Stock("s", initial_value=50)
+        s.add_outflow(m.Flow("outflow", m.Constant("out_rate", 10)))
+        p = m.Policy("p", s <= 10, 10, apply=2)  # apply twice
+        s.add_inflow(m.Flow("policy", p))
+
+    results = model.run(duration=7)
+    assert results.loc[0.0, "s"] == 50
+    assert results.loc[4.0, "s"] == 10  # steady decline -10/dt
+    assert results.loc[5.0, "s"] == 10  # policy triggered +10
+    assert results.loc[6.0, "s"] == 10  # policy triggered again +10
+    assert results.loc[7.0, "s"] == 0  # policy non-longer in effect
+
+
+def test_policy_continuous_application():
+    with m.Model("test", dt=1.0) as model:
+        s = m.Stock("s", initial_value=50)
+        s.add_outflow(m.Flow("outflow", m.Constant("out_rate", 10)))
+        p = m.Policy("p", s <= 10, 10, apply=-1)  # always apply
+        s.add_inflow(m.Flow("policy", p))
+
+    results = model.run(duration=10)
+    assert results.loc[0.0, "s"] == 50
+    assert results.loc[4.0, "s"] == 10  # steady decline -10/dt
+    assert results.loc[5.0, "s"] == 10  # policy triggered +10
+    assert results.loc[10.0, "s"] == 10  # policy still applied

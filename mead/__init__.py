@@ -14,6 +14,7 @@ from .components import (
     Initial,
     Delay2,
     Delay3,
+    Policy,
 )
 from .stock import Stock
 from .flow import Flow
@@ -43,4 +44,5 @@ __all__ = [
     "Stock",
     "Flow",
     "Model",
+    "Policy",
 ]
