@@ -1,4 +1,6 @@
-from mead.core import Constant, Element, Auxiliary, Function
+import pytest
+from copy import replace
+from mead.core import Constant, Element, Auxiliary, Function, Equation
 
 # A dummy context for testing compute methods
 dummy_context = {
@@ -10,6 +12,7 @@ dummy_context = {
 
 def test_element_compute():
     e = Element("stock_val")
+    # elements compute default to stock value
     assert e.compute(dummy_context) == 10
 
 
@@ -158,3 +161,42 @@ def test_function():
 
     f1 = Function("f1", some_test)
     assert f1.compute(dummy_context) == 30.21
+
+
+def test_element_replace():
+    e1 = Element("e1")
+    e2 = replace(e1, value=10)
+    assert e1 == e2
+
+
+def test_constant_replace():
+    c1 = Constant("c1", value = 10)
+    c2 = replace(c1, value=20)
+    assert c1.compute(dummy_context) == 10
+    assert c2.compute(dummy_context) == 20
+
+
+def test_function_replace():
+    f1 = Function("f1", func = lambda ctx: 10)
+    assert f1.compute(dummy_context) == 10
+    f2 = replace(f1, func = lambda ctx: 20)
+    assert f2.compute(dummy_context) == 20
+
+
+def test_auxiliary_replace():
+    c1 = Constant("c1", 10)
+    c2 = Constant("c2", 10)
+    c3 = Constant("c3", 20)
+    a1 = Auxiliary("a1", equation=c1 + c2)
+    assert a1.compute(dummy_context) == 20
+    a2 = replace(a1, equation=c1 + c3)
+    assert a2.compute(dummy_context) == 30
+
+
+def test_equation_replace():
+    c1 = Constant("c1", 10)
+    c2 = Constant("c2", 10)
+    e1 = Equation(left=c1, op="+", right=c2)
+    assert e1.compute(dummy_context) == 20
+    e2 = replace(e1, op="/")
+    assert e2.compute(dummy_context) == 1.0

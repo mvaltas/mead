@@ -79,6 +79,10 @@ class Element:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(name={self.name!r})"
 
+    def __replace__(self, /, **changes):
+        # element default is stocks which shouldn't changed
+        return self
+
 
 class Constant(Element):
     """An element with a fixed value."""
@@ -89,6 +93,10 @@ class Constant(Element):
 
     def compute(self, context: dict[str, Any]) -> float:
         return self.value
+
+    def __replace__(self, /, **kwargs):
+        value = kwargs.get("value", self.value)
+        return Constant(self.name, value)
 
     def __repr__(self) -> str:
         return f"{super().__repr__()}, value={self.value})"
@@ -103,18 +111,22 @@ class Function(Element):
         ---------
         name : str
             A unique name in the model to refer to this element
-        func : Callable[ctx, float]
+        value : Callable[ctx, float]
             A function in the form of `function(ctx) -> float` that will
             be called during model processing.
         """
         super().__init__(name)
-        self.value = func
+        self.func = func
 
     def compute(self, context: dict[str, Any]) -> float:
-        return self.value(context)
+        return self.func(context)
 
     def __repr__(self) -> str:
-        return f"{super().__repr__()}, value={self.value})"
+        return f"{super().__repr__()}, value={self.func})"
+
+    def __replace__(self, /, **changes):
+        f = changes.get("func", self.func)
+        return Function(self.name, func=f)
 
 
 class Auxiliary(Element):
@@ -133,6 +145,11 @@ class Auxiliary(Element):
 
     def __repr__(self) -> str:
         return f"{super().__repr__()}, equation={self.equation!r})"
+
+    def __replace__(self, /, **changes):
+        e = changes.get("equation", self.equation)
+        return Auxiliary(self.name, equation=e)
+
 
 
 class Time(Element):
@@ -164,7 +181,7 @@ _OPERATORS = {
 
 
 class Equation(Element):
-    """An element representing a mathematical operation between other elements."""
+    """Operation between other elements"""
 
     def __init__(self, left: Any, op: str, right: Any):
         _left_element = (
@@ -208,6 +225,12 @@ class Equation(Element):
         ):
             deps.append(self.right)
         return list(set(deps))  # Remove duplicates
+
+    def __replace__(self,/, **changes):
+        left = changes.get("left", self.left)
+        op = changes.get("op", self.op)
+        right = changes.get("right", self.right)
+        return  Equation(left=left, op=op, right=right)
 
     def __repr__(self) -> str:
         return f"{super().__repr__()}, op={self.op!r}, left={self.left.name!r}, right={self.right.name!r})"
