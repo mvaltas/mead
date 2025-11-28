@@ -491,10 +491,7 @@ class Policy(DependencyMixin, Element):
 
     def compute(self, context: dict[str, Any]) -> float:
         time = context["time"]
-        dt = context["dt"]
-        # if policy was applied to this time, repeat
-        # the result. Otherwise the `application_counter` will
-        # fail to apply correctly
+        # reuse results if already applied to this time
         if time in self._apply_mem:
             return self._apply_mem[time]
 
@@ -505,7 +502,7 @@ class Policy(DependencyMixin, Element):
         elif cond == True:
             # appling policy, decrement application
             self.application_counter -= 1
-            result = self.effect.compute(context) / dt
+            result = self.effect.compute(context) / context["dt"]
             # save results
             self._apply_mem[time] = result
             return result

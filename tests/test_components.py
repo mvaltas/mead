@@ -196,3 +196,15 @@ def test_policy_continuous_application():
     assert results.loc[4.0, "s"] == 10  # steady decline -10/dt
     assert results.loc[5.0, "s"] == 10  # policy triggered +10
     assert results.loc[10.0, "s"] == 10  # policy still applied
+
+
+def test_policy_works_with_fractional_dt():
+    with m.Model("test", dt=0.1) as model:
+        s = m.Stock("s", initial_value=20)
+        s.add_outflow(m.Flow("outflow", m.Constant("out_rate", 10)))
+        p = m.Policy("p", s <= 10, 10, apply=-1)  # always apply
+        s.add_inflow(m.Flow("policy", p))
+
+    results = model.run(duration=5)
+    assert results.loc[0.0, "s"] == 20
+    assert results.loc[5.0, "s"] == 10  # policy keeps the stock at 10
