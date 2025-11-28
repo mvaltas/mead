@@ -170,16 +170,16 @@ def test_element_replace():
 
 
 def test_constant_replace():
-    c1 = Constant("c1", value = 10)
+    c1 = Constant("c1", value=10)
     c2 = replace(c1, value=20)
     assert c1.compute(dummy_context) == 10
     assert c2.compute(dummy_context) == 20
 
 
 def test_function_replace():
-    f1 = Function("f1", func = lambda ctx: 10)
+    f1 = Function("f1", func=lambda ctx: 10)
     assert f1.compute(dummy_context) == 10
-    f2 = replace(f1, func = lambda ctx: 20)
+    f2 = replace(f1, func=lambda ctx: 20)
     assert f2.compute(dummy_context) == 20
 
 

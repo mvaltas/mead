@@ -151,7 +151,6 @@ class Auxiliary(Element):
         return Auxiliary(self.name, equation=e)
 
 
-
 class Time(Element):
     """Returns current time of simulation"""
 
@@ -226,11 +225,11 @@ class Equation(Element):
             deps.append(self.right)
         return list(set(deps))  # Remove duplicates
 
-    def __replace__(self,/, **changes):
+    def __replace__(self, /, **changes):
         left = changes.get("left", self.left)
         op = changes.get("op", self.op)
         right = changes.get("right", self.right)
-        return  Equation(left=left, op=op, right=right)
+        return Equation(left=left, op=op, right=right)
 
     def __repr__(self) -> str:
         return f"{super().__repr__()}, op={self.op!r}, left={self.left.name!r}, right={self.right.name!r})"
