@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import Literal, Type, Any, List, Optional
+from typing import Literal, Type, Any, List, Optional, Dict
 from pathlib import Path
 import matplotlib.pyplot as plt
 
@@ -39,6 +39,19 @@ class Model:
         if self._context_token:
             current_model.reset(self._context_token)
             self._context_token = None
+
+    def __deepcopy__(self, memo):
+        from copy import deepcopy
+
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            if k == "_context_token":
+                setattr(result, k, None)
+            else:
+                setattr(result, k, deepcopy(v, memo))
+        return result
 
     def add(self, *elements: Element):
         """Adds one or more elements to the model.
@@ -170,7 +183,7 @@ class Model:
 
     def plot(
         self,
-        results: pd.DataFrame,
+        results: pd.DataFrame | Dict[str, pd.DataFrame],
         columns: Optional[List[str]] = None,
         labels: tuple[str, str] = ("Time", "Value"),
         save_path: Optional[str | Path] = None,
@@ -180,33 +193,59 @@ class Model:
         using `matplotlib` directly.
 
         Args:
-            results: The DataFrame returned by the `run` method.
+            results: The DataFrame returned by the `run` method, or a dictionary of
+                DataFrames from multiple scenario runs.
             columns: A list of column names to plot. If None, all columns are plotted.
             labels: A tuple in the form (x_label, y_label), defaults to *Time x Value*
             save_path: If provided, the plot is saved; otherwise, it's displayed.
         """
-        if columns is None:
-            columns = [col for col in results.columns if col != "time"]
-
-        if not columns:
-            print("No columns to plot.")
-            return
-
         fig, ax1 = plt.subplots(figsize=(12, 7))
 
-        colors = plt.get_cmap("Dark2", len(columns))
-        line1_handles = []
-        for i, col in enumerate(columns):
-            (line,) = ax1.plot(results.index, results[col], label=col, color=colors(i))
-            line1_handles.append(line)
+        if isinstance(results, dict):
+            if columns is None:
+                first_df = next(iter(results.values()))
+                columns = [col for col in first_df.columns if col != "time"]
+
+            if not columns:
+                print("No columns to plot.")
+                return
+
+            colors = plt.get_cmap("Dark2", len(columns))
+            line_styles = ["-", "--", ":", "-."]
+
+            for i, col in enumerate(columns):
+                for j, (scenario_name, df) in enumerate(results.items()):
+                    if col in df.columns:
+                        line_style = line_styles[j % len(line_styles)]
+                        ax1.plot(
+                            df.index,
+                            df[col],
+                            label=f"{col} ({scenario_name})",
+                            color=colors(i),
+                            linestyle=line_style,
+                        )
+
+            ax1.set_title("Scenario Comparison")
+
+        else:
+            # Single scenario
+            if columns is None:
+                columns = [col for col in results.columns if col != "time"]
+
+            if not columns:
+                print("No columns to plot.")
+                return
+
+            colors = plt.get_cmap("Dark2", len(columns))
+            for i, col in enumerate(columns):
+                ax1.plot(results.index, results[col], label=col, color=colors(i))
+
+            ax1.set_title(f"Simulation Results for {self.name}")
 
         ax1.set_xlabel(labels[0])
         ax1.set_ylabel(labels[1])
         ax1.grid(True)
-
         ax1.legend(loc="best")
-
-        ax1.set_title(f"Simulation Results for {self.name}")
 
         if save_path:
             plt.savefig(Path(save_path))
