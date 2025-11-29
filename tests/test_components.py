@@ -1,3 +1,4 @@
+from copy import replace
 import mead as m
 
 
@@ -208,3 +209,26 @@ def test_policy_works_with_fractional_dt():
     results = model.run(duration=5)
     assert results.loc[0.0, "s"] == 20
     assert results.loc[5.0, "s"] == 10  # policy keeps the stock at 10
+
+
+def test_delay_replace():
+    f1 = m.Flow("f", equation=1)
+    d1 = m.Delay("d1", input=f1, delay_time=1.0)
+
+    assert isinstance(d1.delay_time, m.Constant)
+    assert isinstance(d1.input, m.Flow)
+    assert d1.delay_time.value == 1.0
+    assert d1.input == f1
+
+    d2 = replace(d1, delay_time=2.0, input=m.Flow("f2", equation=3))
+    assert isinstance(d2.delay_time, m.Constant)
+    assert isinstance(d2.input, m.Flow)
+    assert d2.delay_time.value == 2.0
+    assert d2.input.equation.compute({}) == 3.0
+
+
+def test_flow_replace():
+    f1 = m.Flow("f1", equation=1)
+    assert f1.equation.compute({}) == 1.0
+    f2 = replace(f1, equation=2)
+    assert f2.equation.compute({}) == 2.0

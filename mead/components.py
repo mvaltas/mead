@@ -15,11 +15,11 @@ class Delay(DependencyMixin, Element):
     Requires the model to manage history.
     """
 
-    _element_attrs = ["input_stock", "delay_time"]
+    _element_attrs = ["input", "delay_time"]
 
-    def __init__(self, name: str, input_stock: Element, delay_time: float | Element):
+    def __init__(self, name: str, input: Element, delay_time: float | Element):
         super().__init__(name)
-        self.input_stock = input_stock
+        self.input = input
         self.delay_time = as_element(delay_time)
 
     def compute(self, context: dict[str, Any]) -> float:
@@ -32,10 +32,10 @@ class Delay(DependencyMixin, Element):
         computed_delay_time = self.delay_time.compute(
             context
         )  # Compute the value of delay_time
-        return history_lookup(self.input_stock.name, computed_delay_time)
+        return history_lookup(self.input.name, computed_delay_time)
 
     def __repr__(self) -> str:
-        return f"{super().__repr__()}, input_stock={self.input_stock.name!r}, delay_time={self.delay_time})"
+        return f"{super().__repr__()}, input={self.input.name!r}, delay_time={self.delay_time!r})"
 
 
 class Smooth(DependencyMixin, Element):
@@ -82,7 +82,7 @@ class Smooth(DependencyMixin, Element):
         )
 
     def __repr__(self) -> str:
-        return f"{super().__repr__()}, input_element={self.target_value.name!r}, smoothing_time={self.smoothing_time.name!r}, initial_value={self.initial_value})"
+        return f"{super().__repr__()}, input_element={self.target_value.name!r}, smoothing_time={self.smoothing_time.name!r}, initial_value={self.initial_value}"
 
 
 class Table(DependencyMixin, Element):
@@ -511,3 +511,29 @@ class Policy(DependencyMixin, Element):
 
     def __repr__(self) -> str:
         return f"{super().__repr__()}, condition={self.condition!r}, effect={self.effect!r})"
+
+
+class Flow(Element):
+    """
+    A Flow represents a rate of change in the model.
+    Its value is determined by its equation.
+    """
+
+    def __init__(self, name: str, equation: float | Element):
+        super().__init__(name)
+        self.equation = as_element(equation)
+
+    def compute(self, context: dict[str, Any]) -> float:
+        """Computes the flow's rate by evaluating its equation."""
+        return self.equation.compute(context)
+
+    @property
+    def dependencies(self) -> list[Element]:
+        """Returns the dependencies of the flow's equation."""
+        deps = [self.equation]
+        if hasattr(self.equation, "dependencies"):
+            deps.extend(self.equation.dependencies)
+        return deps
+
+    def __repr__(self) -> str:
+        return f"{super().__repr__()}, equation={self.equation!r}"

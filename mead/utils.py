@@ -34,3 +34,21 @@ class DependencyMixin:
                     if isinstance(item, Element):
                         deps.append(item)
         return list(set(deps))
+
+
+def deep_replace(obj, old, new):
+    if obj is old:
+        return new
+    if isinstance(obj, list):
+        return [deep_replace(x, old, new) for x in obj]
+    if isinstance(obj, tuple):
+        return tuple(deep_replace(x, old, new) for x in obj)
+    if isinstance(obj, dict):
+        return {k: deep_replace(v, old, new) for k, v in obj.items()}
+    if hasattr(obj, "__dict__"):
+        for attr, value in obj.__dict__.items():
+            # Avoid infinite recursion, don't replace the model in an element
+            if attr == "model" and hasattr(value, "elements"):
+                continue
+            setattr(obj, attr, deep_replace(value, old, new))
+    return obj

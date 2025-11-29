@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+import inspect
+from typing import TYPE_CHECKING, Any, Self
 from collections.abc import Callable
-
 from mead.context import current_model
 
 # prevents circular import
@@ -79,9 +79,19 @@ class Element:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(name={self.name!r})"
 
-    def __replace__(self, /, **changes):
-        # element default is stocks which shouldn't changed
-        return self
+    def __replace__(self, /, **changes) -> Self:
+        """
+        Returns a new instance of the same class, overriding only
+        the attributes passed in `changes`.
+        """
+        cls = self.__class__
+        sig = inspect.signature(cls.__init__)
+        kwargs = {}
+
+        for name, param in list(sig.parameters.items())[1:]:  # skip 'self'
+            kwargs[name] = changes.get(name, getattr(self, name, param.default))
+
+        return cls(**kwargs)
 
 
 class Constant(Element):
@@ -93,10 +103,6 @@ class Constant(Element):
 
     def compute(self, context: dict[str, Any]) -> float:
         return self.value
-
-    def __replace__(self, /, **kwargs):
-        value = kwargs.get("value", self.value)
-        return Constant(self.name, value)
 
     def __repr__(self) -> str:
         return f"{super().__repr__()}, value={self.value})"
@@ -124,10 +130,6 @@ class Function(Element):
     def __repr__(self) -> str:
         return f"{super().__repr__()}, value={self.func})"
 
-    def __replace__(self, /, **changes):
-        f = changes.get("func", self.func)
-        return Function(self.name, func=f)
-
 
 class Auxiliary(Element):
     """An element representing a named equation, useful for intermediate calculations."""
@@ -145,10 +147,6 @@ class Auxiliary(Element):
 
     def __repr__(self) -> str:
         return f"{super().__repr__()}, equation={self.equation!r})"
-
-    def __replace__(self, /, **changes):
-        e = changes.get("equation", self.equation)
-        return Auxiliary(self.name, equation=e)
 
 
 class Time(Element):
@@ -224,12 +222,6 @@ class Equation(Element):
         ):
             deps.append(self.right)
         return list(set(deps))  # Remove duplicates
-
-    def __replace__(self, /, **changes):
-        left = changes.get("left", self.left)
-        op = changes.get("op", self.op)
-        right = changes.get("right", self.right)
-        return Equation(left=left, op=op, right=right)
 
     def __repr__(self) -> str:
         return f"{super().__repr__()}, op={self.op!r}, left={self.left.name!r}, right={self.right.name!r})"

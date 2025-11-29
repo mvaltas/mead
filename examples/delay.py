@@ -22,7 +22,7 @@ with Model(name="Delay2 Example Model", dt=0.125) as model:
     )
 
     # Simple delay just holds for N steps, no smoothing
-    delay = Delay(name="Delay", input_stock=step_input, delay_time=3.0)
+    delay = Delay(name="Delay", input=step_input, delay_time=3.0)
 
     # Define a Delay2 component
     delay_time = Constant("Delay Time", 5.0)  # Total delay time

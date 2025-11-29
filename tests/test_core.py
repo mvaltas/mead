@@ -163,12 +163,6 @@ def test_function():
     assert f1.compute(dummy_context) == 30.21
 
 
-def test_element_replace():
-    e1 = Element("e1")
-    e2 = replace(e1, value=10)
-    assert e1 == e2
-
-
 def test_constant_replace():
     c1 = Constant("c1", value=10)
     c2 = replace(c1, value=20)

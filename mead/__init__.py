@@ -15,10 +15,11 @@ from .components import (
     Delay2,
     Delay3,
     Policy,
+    Flow,
 )
 from .stock import Stock
-from .flow import Flow
 from .model import Model
+from .scenario import Scenario
 
 __version__ = importlib.metadata.version("mead")
 
@@ -45,4 +46,5 @@ __all__ = [
     "Flow",
     "Model",
     "Policy",
+    "Scenario",
 ]
