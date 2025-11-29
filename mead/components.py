@@ -3,19 +3,17 @@ from typing import TYPE_CHECKING, Any, Sequence, Tuple
 
 from mead.core import Element
 from mead.stock import Stock
-from mead.utils import as_element, DependencyMixin
+from mead.utils import as_element
 
 if TYPE_CHECKING:
     from mead.model import Model
 
 
-class Delay(DependencyMixin, Element):
+class Delay(Element):
     """
     An element that returns a delayed value of an input.
     Requires the model to manage history.
     """
-
-    _element_attrs = ["input", "delay_time"]
 
     def __init__(self, name: str, input: Element, delay_time: float | Element):
         super().__init__(name)
@@ -34,18 +32,20 @@ class Delay(DependencyMixin, Element):
         )  # Compute the value of delay_time
         return history_lookup(self.input.name, computed_delay_time)
 
+    @property
+    def dependencies(self) -> list[Element]:
+        return [self.input, self.delay_time]
+
     def __repr__(self) -> str:
-        return f"{super().__repr__()}, input={self.input.name!r}, delay_time={self.delay_time!r})"
+        return f"Delay(name={self.name!r}, input={self.input.name!r}, delay_time={self.delay_time!r})"
 
 
-class Smooth(DependencyMixin, Element):
+class Smooth(Element):
     """
     An element that computes an exponential smooth of an input.
     smooth_value(t) = smooth_value(t-dt) + (dt / smoothing_time) * (input_value(t) - smooth_value(t-dt))
     Requires the model to manage history of this smooth element itself.
     """
-
-    _element_attrs = ["target_value", "smoothing_time", "initial_value"]
 
     def __init__(
         self,
@@ -81,17 +81,19 @@ class Smooth(DependencyMixin, Element):
             input_val - previous_smooth_val
         )
 
+    @property
+    def dependencies(self) -> list[Element]:
+        return [self.target_value, self.smoothing_time, self.initial_value]
+
     def __repr__(self) -> str:
-        return f"{super().__repr__()}, input_element={self.target_value.name!r}, smoothing_time={self.smoothing_time.name!r}, initial_value={self.initial_value}"
+        return f"Smooth(name={self.name!r}, input_element={self.target_value.name!r}, smoothing_time={self.smoothing_time.name!r}, initial_value={self.initial_value})"
 
 
-class Table(DependencyMixin, Element):
+class Table(Element):
     """
     An element that performs a lookup from a table (functional relationship)
     using linear interpolation.
     """
-
-    _element_attrs = ["input_element"]
 
     def __init__(
         self, name: str, input: float | Element, points: Sequence[Tuple[float, float]]
@@ -127,17 +129,19 @@ class Table(DependencyMixin, Element):
 
         return 0.0  # Fallback
 
+    @property
+    def dependencies(self) -> list[Element]:
+        return [self.input_element]
+
     def __repr__(self) -> str:
-        return f"{super().__repr__()}, input_element={self.input_element.name!r}, points={self.points!r})"
+        return f"Table(name={self.name!r}, input_element={self.input_element.name!r}, points={self.points!r})"
 
 
-class IfThenElse(DependencyMixin, Element):
+class IfThenElse(Element):
     """
     An element that represents conditional logic.
     If condition > 0, returns the true_element's value, else returns the false_element's value.
     """
-
-    _element_attrs = ["condition", "true_element", "false_element"]
 
     def __init__(
         self,
@@ -158,19 +162,21 @@ class IfThenElse(DependencyMixin, Element):
         else:
             return self.false_element.compute(context)
 
+    @property
+    def dependencies(self) -> list[Element]:
+        return [self.condition, self.true_element, self.false_element]
+
     def __repr__(self) -> str:
         return (
-            f"{super().__repr__()}, condition={self.condition.name!r}, "
+            f"IfThenElse(name={self.name!r}, condition={self.condition.name!r}, "
             f"true_element={self.true_element.name!r}, false_element={self.false_element.name!r})"
         )
 
 
-class Min(DependencyMixin, Element):
+class Min(Element):
     """
     An element that returns the minimum of its input elements.
     """
-
-    _element_attrs = ["input_elements"]  # input_elements is a list of Elements
 
     def __init__(self, name: str, *input_elements: float | Element):
         super().__init__(name)
@@ -181,17 +187,19 @@ class Min(DependencyMixin, Element):
     def compute(self, context: dict[str, Any]) -> float:
         return min(el.compute(context) for el in self.input_elements)
 
+    @property
+    def dependencies(self) -> list[Element]:
+        return self.input_elements
+
     def __repr__(self) -> str:
         input_names = ", ".join(el.name for el in self.input_elements)
-        return f"{super().__repr__()}, inputs=[{input_names}])"
+        return f"Min(name={self.name!r}, inputs=[{input_names}])"
 
 
-class Max(DependencyMixin, Element):
+class Max(Element):
     """
     An element that returns the maximum of its input elements.
     """
-
-    _element_attrs = ["input_elements"]  # input_elements is a list of Elements
 
     def __init__(self, name: str, *input_elements: float | Element):
         super().__init__(name)
@@ -202,17 +210,19 @@ class Max(DependencyMixin, Element):
     def compute(self, context: dict[str, Any]) -> float:
         return max(el.compute(context) for el in self.input_elements)
 
+    @property
+    def dependencies(self) -> list[Element]:
+        return self.input_elements
+
     def __repr__(self) -> str:
         input_names = ", ".join(el.name for el in self.input_elements)
-        return f"{super().__repr__()}, inputs=[{input_names}])"
+        return f"Max(name={self.name!r}, inputs=[{input_names}])"
 
 
-class Pulse(DependencyMixin, Element):
+class Pulse(Element):
     """
     An element that generates a pulse (a temporary burst) of a given magnitude.
     """
-
-    _element_attrs = ["start_time", "duration", "magnitude"]
 
     def __init__(
         self,
@@ -236,19 +246,21 @@ class Pulse(DependencyMixin, Element):
             return mag
         return 0.0
 
+    @property
+    def dependencies(self) -> list[Element]:
+        return [self.start_time, self.duration, self.magnitude]
+
     def __repr__(self) -> str:
         return (
-            f"{super().__repr__()}, start_time={self.start_time.name!r}, "
+            f"Pulse(name={self.name!r}, start_time={self.start_time.name!r}, "
             f"duration={self.duration.name!r}, magnitude={self.magnitude.name!r})"
         )
 
 
-class Step(DependencyMixin, Element):
+class Step(Element):
     """
     An element that generates a step change in value at a specified start_time.
     """
-
-    _element_attrs = ["start_time", "before_value", "after_value"]
 
     def __init__(
         self,
@@ -271,19 +283,21 @@ class Step(DependencyMixin, Element):
         else:
             return self.after_value.compute(context)
 
+    @property
+    def dependencies(self) -> list[Element]:
+        return [self.start_time, self.before_value, self.after_value]
+
     def __repr__(self) -> str:
         return (
-            f"{super().__repr__()}, start_time={self.start_time.name!r}, "
+            f"Step(name={self.name!r}, start_time={self.start_time.name!r}, "
             f"before_value={self.before_value.name!r}, after_value={self.after_value.name!r})"
         )
 
 
-class Ramp(DependencyMixin, Element):
+class Ramp(Element):
     """
     An element that generates a linearly increasing (or decreasing) value over a period.
     """
-
-    _element_attrs = ["start_time", "end_time", "slope", "initial_value"]
 
     def __init__(
         self,
@@ -313,26 +327,22 @@ class Ramp(DependencyMixin, Element):
         else:
             return initial + slp * (end - start)  # Hold the value at end_time
 
+    @property
+    def dependencies(self) -> list[Element]:
+        return [self.start_time, self.end_time, self.slope, self.initial_value]
+
     def __repr__(self) -> str:
         return (
-            f"{super().__repr__()}, start_time={self.start_time.name!r}, "
+            f"Ramp(name={self.name!r}, start_time={self.start_time.name!r}, "
             f"end_time={self.end_time.name!r}, slope={self.slope.name!r}, "
             f"initial_value={self.initial_value.name!r})"
         )
 
 
-class Delay2(DependencyMixin, Element):
+class Delay2(Element):
     """
     A second-order exponential delay element, implemented as a chain of two Smooth components.
     """
-
-    _element_attrs = [
-        "input_element",
-        "delay_time",
-        "initial_value",
-        "smooth1",
-        "smooth2",
-    ]
 
     def __init__(
         self,
@@ -368,26 +378,27 @@ class Delay2(DependencyMixin, Element):
         # The output of Delay2 is the output of the final Smooth component
         return self.smooth2.compute(context)
 
+    @property
+    def dependencies(self) -> list[Element]:
+        return [
+            self.input_element,
+            self.delay_time,
+            self.initial_value,
+            self.smooth1,
+            self.smooth2,
+        ]
+
     def __repr__(self) -> str:
         return (
-            f"{super().__repr__()}, input_element={self.input_element.name!r}, "
+            f"Delay2(name={self.name!r}, input_element={self.input_element.name!r}, "
             f"delay_time={self.delay_time.name!r}, initial_value={self.initial_value.name!r})"
         )
 
 
-class Delay3(DependencyMixin, Element):
+class Delay3(Element):
     """
     A third-order exponential delay element, implemented as a chain of three Smooth components.
     """
-
-    _element_attrs = [
-        "input_element",
-        "delay_time",
-        "initial_value",
-        "smooth1",
-        "smooth2",
-        "smooth3",
-    ]
 
     def __init__(
         self,
@@ -429,19 +440,28 @@ class Delay3(DependencyMixin, Element):
         # The output of Delay3 is the output of the final Smooth component
         return self.smooth3.compute(context)
 
+    @property
+    def dependencies(self) -> list[Element]:
+        return [
+            self.input_element,
+            self.delay_time,
+            self.initial_value,
+            self.smooth1,
+            self.smooth2,
+            self.smooth3,
+        ]
+
     def __repr__(self) -> str:
         return (
-            f"{super().__repr__()}, input_element={self.input_element.name!r}, "
+            f"Delay3(name={self.name!r}, input_element={self.input_element.name!r}, "
             f"delay_time={self.delay_time.name!r}, initial_value={self.initial_value.name!r})"
         )
 
 
-class Initial(DependencyMixin, Element):
+class Initial(Element):
     """
     An element that returns the initial value of an input element.
     """
-
-    _element_attrs = ["input_element"]
 
     def __init__(self, name: str, input_element: Element):
         super().__init__(name)
@@ -464,14 +484,16 @@ class Initial(DependencyMixin, Element):
         }
         return self.input_element.compute(initial_context)
 
+    @property
+    def dependencies(self) -> list[Element]:
+        return [self.input_element]
+
     def __repr__(self) -> str:
-        return f"{super().__repr__()}, input_element={self.input_element.name!r})"
+        return f"Initial(name={self.name!r}, input_element={self.input_element.name!r})"
 
 
-class Policy(DependencyMixin, Element):
+class Policy(Element):
     """Models an intervention when condition is met"""
-
-    _element_attrs = ["condition", "effect"]
 
     def __init__(
         self, name: str, condition: Element, effect: float | Element, apply: int = 1
@@ -509,8 +531,12 @@ class Policy(DependencyMixin, Element):
         else:
             return 0.0
 
+    @property
+    def dependencies(self) -> list[Element]:
+        return [self.condition, self.effect]
+
     def __repr__(self) -> str:
-        return f"{super().__repr__()}, condition={self.condition!r}, effect={self.effect!r})"
+        return f"Policy(name={self.name!r}, condition={self.condition!r}, effect={self.effect!r})"
 
 
 class Flow(Element):
@@ -536,4 +562,4 @@ class Flow(Element):
         return deps
 
     def __repr__(self) -> str:
-        return f"{super().__repr__()}, equation={self.equation!r}"
+        return f"Flow(name={self.name!r}, equation={self.equation!r})"

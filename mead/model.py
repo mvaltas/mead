@@ -2,6 +2,7 @@ import pandas as pd
 from typing import Literal, Type, Any, List, Optional, Dict
 from pathlib import Path
 import matplotlib.pyplot as plt
+from copy import deepcopy
 
 from mead.core import Element
 from mead.stock import Stock
@@ -41,8 +42,6 @@ class Model:
             self._context_token = None
 
     def __deepcopy__(self, memo):
-        from copy import deepcopy
-
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
@@ -201,18 +200,23 @@ class Model:
         """
         fig, ax1 = plt.subplots(figsize=(12, 7))
 
-        if isinstance(results, dict):
-            if columns is None:
+        # Determine columns to plot
+        if columns is None:
+            if isinstance(results, dict):
                 first_df = next(iter(results.values()))
                 columns = [col for col in first_df.columns if col != "time"]
+            else:
+                columns = [col for col in results.columns if col != "time"]
 
-            if not columns:
-                print("No columns to plot.")
-                return
+        if not columns:
+            print("No columns to plot.")
+            return
 
-            colors = plt.get_cmap("Dark2", len(columns))
+        colors = plt.get_cmap("Dark2", len(columns))
+
+        if isinstance(results, dict):
+            # Multiple scenarios
             line_styles = ["-", "--", ":", "-."]
-
             for i, col in enumerate(columns):
                 for j, (scenario_name, df) in enumerate(results.items()):
                     if col in df.columns:
@@ -224,22 +228,11 @@ class Model:
                             color=colors(i),
                             linestyle=line_style,
                         )
-
             ax1.set_title("Scenario Comparison")
-
         else:
             # Single scenario
-            if columns is None:
-                columns = [col for col in results.columns if col != "time"]
-
-            if not columns:
-                print("No columns to plot.")
-                return
-
-            colors = plt.get_cmap("Dark2", len(columns))
             for i, col in enumerate(columns):
                 ax1.plot(results.index, results[col], label=col, color=colors(i))
-
             ax1.set_title(f"Simulation Results for {self.name}")
 
         ax1.set_xlabel(labels[0])

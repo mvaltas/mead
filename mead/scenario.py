@@ -25,6 +25,8 @@ class ScenarioRunner:
 
             old_elem = new_model.elements[name]
             deep_replace(new_model, old_elem, new_elem)
+            new_model.elements[name] = new_elem
+            new_elem.model = new_model
 
         return new_model
 

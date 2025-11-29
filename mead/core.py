@@ -1,7 +1,7 @@
 from __future__ import annotations
-import inspect
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any
 from collections.abc import Callable
+
 from mead.context import current_model
 
 # prevents circular import
@@ -75,23 +75,6 @@ class Element:
         """Computes the value of the element based on the current model context."""
         # By default, an element's value is its current state in the model
         return context["state"].get(self.name, 0.0)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(name={self.name!r})"
-
-    def __replace__(self, /, **changes) -> Self:
-        """
-        Returns a new instance of the same class, overriding only
-        the attributes passed in `changes`.
-        """
-        cls = self.__class__
-        sig = inspect.signature(cls.__init__)
-        kwargs = {}
-
-        for name, param in list(sig.parameters.items())[1:]:  # skip 'self'
-            kwargs[name] = changes.get(name, getattr(self, name, param.default))
-
-        return cls(**kwargs)
 
 
 class Constant(Element):
