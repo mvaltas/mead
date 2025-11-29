@@ -1,5 +1,5 @@
-from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+import inspect
+from typing import TYPE_CHECKING, Any, Self
 from collections.abc import Callable
 
 from mead.context import current_model
@@ -66,6 +66,15 @@ class Element:
 
     def __le__(self, other) -> Equation:
         return Equation(self, "<=", other)
+
+    def __replace__(self, /, **changes) -> Self:
+        cls = self.__class__
+        sig = inspect.signature(cls.__init__)
+        kwargs = {}
+        for name, param in list(sig.parameters.items())[1:]:  # skip 'self'
+            kwargs[name] = changes.get(name, getattr(self, name, param.default))
+
+        return cls(**kwargs)
 
     @property
     def dependencies(self) -> list[Element]:
@@ -207,4 +216,4 @@ class Equation(Element):
         return list(set(deps))  # Remove duplicates
 
     def __repr__(self) -> str:
-        return f"{super().__repr__()}, op={self.op!r}, left={self.left.name!r}, right={self.right.name!r})"
+        return f"Equation(op={self.op!r}, left={self.left.name!r}, right={self.right.name!r})"

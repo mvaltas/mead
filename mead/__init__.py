@@ -19,7 +19,7 @@ from .components import (
 )
 from .stock import Stock
 from .model import Model
-from .scenario import Scenario
+from .scenario import Scenario, ScenarioRunner
 
 __version__ = importlib.metadata.version("mead")
 
@@ -47,4 +47,5 @@ __all__ = [
     "Model",
     "Policy",
     "Scenario",
+    "ScenarioRunner",
 ]
