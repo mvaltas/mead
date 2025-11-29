@@ -1,4 +1,3 @@
-import pandas as pd
 from mead import Model, Element
 from dataclasses import dataclass
 from copy import deepcopy
