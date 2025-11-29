@@ -97,7 +97,7 @@ class Constant(Element):
         return self.value
 
     def __repr__(self) -> str:
-        return f"{super().__repr__()}, value={self.value})"
+        return f"Constant(value={self.value})"
 
 
 class Function(Element):
@@ -120,7 +120,7 @@ class Function(Element):
         return self.func(context)
 
     def __repr__(self) -> str:
-        return f"{super().__repr__()}, value={self.func})"
+        return f"Function(value={self.func})"
 
 
 class Auxiliary(Element):
@@ -144,7 +144,7 @@ class Auxiliary(Element):
 class Time(Element):
     """Returns current time of simulation"""
 
-    def __init__(self, name: str):
+    def __init__(self, name: str = "time"):
         super().__init__(name)
 
     def compute(self, context: dict[str, Any]) -> float:

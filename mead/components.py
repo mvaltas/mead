@@ -508,7 +508,7 @@ class Policy(Element):
         super().__init__(name)
         self.condition = condition
         self.effect = as_element(effect)
-        self.application_counter = apply
+        self.apply = apply
         self._apply_mem: dict[float, float] = {}
 
     def compute(self, context: dict[str, Any]) -> float:
@@ -519,11 +519,11 @@ class Policy(Element):
 
         cond = self.condition.compute(context)
         # if counter < 0, always apply policy
-        if self.application_counter == 0:
+        if self.apply == 0:
             return 0.0
         elif cond == True:
             # appling policy, decrement application
-            self.application_counter -= 1
+            self.apply -= 1
             result = self.effect.compute(context) / context["dt"]
             # save results
             self._apply_mem[time] = result
@@ -536,7 +536,7 @@ class Policy(Element):
         return [self.condition, self.effect]
 
     def __repr__(self) -> str:
-        return f"Policy(name={self.name!r}, condition={self.condition!r}, effect={self.effect!r})"
+        return f"Policy(name={self.name!r}, condition={self.condition!r}, effect={self.effect!r}, apply={self.apply!r})"
 
 
 class Flow(Element):
