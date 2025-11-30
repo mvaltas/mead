@@ -21,3 +21,7 @@
 ## Harmonic Oscillator
 
 ![Harmonic Oscillator](imgs/harmonic_oscillator.png)
+
+## Chickens Crossing Scenarios
+
+![Chickens Crossing Scenarios](imgs/chickens_scenarios.png)
