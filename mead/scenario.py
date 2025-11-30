@@ -1,4 +1,5 @@
-from mead import Model, Element
+from mead import Model, Element, Stock
+from mead.model import IntegrationMethod
 from dataclasses import dataclass
 from copy import deepcopy
 from mead.utils import deep_replace
@@ -25,20 +26,34 @@ class ScenarioRunner:
             old_elem = new_model.elements[name]
             deep_replace(new_model, old_elem, new_elem)
             new_model.elements[name] = new_elem
+            if isinstance(new_elem, Stock):
+                new_model.stocks[new_elem.name] = new_elem
             new_elem.model = new_model
 
         return new_model
 
-    def run_scenario(self, scenario: Scenario, duration: float):
+    def run_scenario(
+        self, scenario: Scenario, duration: float, method: IntegrationMethod = "euler"
+    ):
         new_model = self._apply(scenario.variants)
-        return new_model.run(duration=duration)
+        return new_model.run(duration=duration, method=method)
 
-    def run_many(self, scenarios: list[Scenario], duration: float):
-        results = {s.name: self.run_scenario(s, duration) for s in scenarios}
+    def run_many(
+        self,
+        scenarios: list[Scenario],
+        duration: float,
+        method: IntegrationMethod = "euler",
+    ):
+        results = {s.name: self.run_scenario(s, duration, method) for s in scenarios}
         return results
 
-    def run(self, scenarios: Scenario | list[Scenario], duration: float):
+    def run(
+        self,
+        scenarios: Scenario | list[Scenario],
+        duration: float,
+        method: IntegrationMethod = "euler",
+    ):
         if isinstance(scenarios, list):
-            return self.run_many(scenarios, duration)
+            return self.run_many(scenarios, duration, method)
         else:
-            return self.run_many([scenarios], duration)
+            return self.run_many([scenarios], duration, method)

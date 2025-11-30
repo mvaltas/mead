@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from mead.core import Element
 
 if TYPE_CHECKING:
-    from mead.flow import Flow
+    from mead.components import Flow
 
 
 class Stock(Element):
@@ -18,10 +18,12 @@ class Stock(Element):
         self.inflows: list[Flow] = []
         self.outflows: list[Flow] = []
 
-    def add_inflow(self, flow: Flow) -> None:
+    def add_inflow(self, flow: Flow) -> Stock:
         """Add a flow that increases this stock."""
         self.inflows.append(flow)
+        return self
 
-    def add_outflow(self, flow: Flow) -> None:
+    def add_outflow(self, flow: Flow) -> Stock:
         """Add a flow that decreases this stock."""
         self.outflows.append(flow)
+        return self

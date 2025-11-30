@@ -216,7 +216,17 @@ class Model:
 
         if isinstance(results, dict):
             # Multiple scenarios
-            line_styles = ["-", "--", ":", "-."]
+            # linestyles from: https://matplotlib.org/stable/gallery/lines_bars_and_markers/linestyles.html
+            line_styles = [
+                "solid",
+                "dashed",
+                "dotted",
+                "dashdot",
+                (0, (1, 1)),  # densely dotted
+                (0, (3, 1, 1, 1)),  # densely dashdotted
+                (0, (3, 5, 1, 5)),  # dashdotted
+                (0, (3, 1, 1, 1, 1, 1)),  # densely dashdotdotted
+            ]
             for i, col in enumerate(columns):
                 for j, (scenario_name, df) in enumerate(results.items()):
                     if col in df.columns:
