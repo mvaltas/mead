@@ -97,7 +97,7 @@ class Constant(Element):
         return self.value
 
     def __repr__(self) -> str:
-        return f"Constant(value={self.value})"
+        return f"Constant(name={self.name!r}, value={self.value!r})"
 
 
 class Function(Element):
@@ -120,7 +120,7 @@ class Function(Element):
         return self.func(context)
 
     def __repr__(self) -> str:
-        return f"Function(value={self.func})"
+        return f"Function(name={self.name}, func={self.func})"
 
 
 class Auxiliary(Element):
@@ -138,7 +138,7 @@ class Auxiliary(Element):
         return [self.equation]  # Auxiliary directly depends on its equation
 
     def __repr__(self) -> str:
-        return f"{super().__repr__()}, equation={self.equation!r})"
+        return f"Auxiliary(equation={self.equation!r})"
 
 
 class Time(Element):
@@ -151,7 +151,7 @@ class Time(Element):
         return context.get("time", 0.0)
 
     def __repr__(self) -> str:
-        return f"{super().__repr__()})"
+        return f"Time(name={self.name!r})"
 
 
 import operator
@@ -217,3 +217,6 @@ class Equation(Element):
 
     def __repr__(self) -> str:
         return f"Equation(op={self.op!r}, left={self.left.name!r}, right={self.right.name!r})"
+
+    def __str__(self) -> str:
+        return self.name

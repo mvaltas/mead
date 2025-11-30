@@ -1,3 +1,4 @@
+from typing import Iterable
 from mead import Model, Element, Stock
 from mead.model import IntegrationMethod
 from dataclasses import dataclass
@@ -18,17 +19,17 @@ class ScenarioRunner:
     def _apply(self, variants: list[Element]) -> Model:
         new_model = deepcopy(self.base_model)
 
-        for new_elem in variants:
-            name = new_elem.name
-            if name not in new_model.elements:
-                raise ValueError(f"Model has no element named {name}")
+        replacements = {v.name: v for v in variants}
 
-            old_elem = new_model.elements[name]
-            deep_replace(new_model, old_elem, new_elem)
-            new_model.elements[name] = new_elem
-            if isinstance(new_elem, Stock):
-                new_model.stocks[new_elem.name] = new_elem
+        for name, new_elem in replacements.items():
+            if name in new_model.elements:
+                new_model.elements[name] = new_elem
+                if isinstance(new_elem, Stock):
+                    new_model.stocks[name] = new_elem
+            # elements contain a reference of the model itself
             new_elem.model = new_model
+
+        deep_replace(new_model, replacements)
 
         return new_model
 
@@ -40,7 +41,7 @@ class ScenarioRunner:
 
     def run_many(
         self,
-        scenarios: list[Scenario],
+        scenarios: Iterable[Scenario],
         duration: float,
         method: IntegrationMethod = "euler",
     ):
@@ -49,11 +50,11 @@ class ScenarioRunner:
 
     def run(
         self,
-        scenarios: Scenario | list[Scenario],
+        scenarios: Scenario | Iterable[Scenario],
         duration: float,
         method: IntegrationMethod = "euler",
     ):
-        if isinstance(scenarios, list):
+        if isinstance(scenarios, Iterable):
             return self.run_many(scenarios, duration, method)
         else:
             return self.run_many([scenarios], duration, method)

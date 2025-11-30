@@ -1,4 +1,4 @@
-from typing import Any, Sequence
+from typing import Any
 from mead.core import Element, Constant
 
 
@@ -12,41 +12,33 @@ def as_element(value: Any) -> Element:
             raise ValueError(f"Can't handle type of {value}")
 
 
-def deep_replace(obj, old, new, memo=None):
+def deep_replace(
+    obj: Any, replacements: dict[str, Element], memo: set | None = None
+) -> Any:
     if memo is None:
         memo = set()
+
+    # avoid infinite recursion on circular references
     if id(obj) in memo:
         return obj
-
     memo.add(id(obj))
 
-    if obj is old:
-        return new
+    if isinstance(obj, Element) and obj.name in replacements:
+        return replacements[obj.name]
 
     if isinstance(obj, list):
         for i, item in enumerate(obj):
-            obj[i] = deep_replace(item, old, new, memo)
-        return obj
-
-    if isinstance(obj, tuple):
-        return tuple(deep_replace(x, old, new, memo) for x in obj)
-
-    if isinstance(obj, dict):
+            obj[i] = deep_replace(item, replacements, memo)
+    elif isinstance(obj, tuple):
+        # Tuples are immutable we need to create a new one
+        return tuple(deep_replace(x, replacements, memo) for x in obj)
+    elif isinstance(obj, dict):
         for k, v in obj.items():
-            obj[k] = deep_replace(v, old, new, memo)
-        return obj
-
-    if hasattr(obj, "__dict__"):
+            obj[k] = deep_replace(v, replacements, memo)
+    elif hasattr(obj, "__dict__"):
         for attr, value in obj.__dict__.items():
-            if attr == "model" and hasattr(value, "elements"):
+            # Avoid recursing into the entire model from an element
+            if attr == "model":
                 continue
-            setattr(obj, attr, deep_replace(value, old, new, memo))
-        return obj
-
-    if hasattr(obj, "__slots__"):
-        for slot in obj.__slots__:
-            if hasattr(obj, slot):
-                setattr(obj, slot, deep_replace(getattr(obj, slot), old, new, memo))
-        return obj
-
+            setattr(obj, attr, deep_replace(value, replacements, memo))
     return obj
