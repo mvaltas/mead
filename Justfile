@@ -15,7 +15,16 @@ test *params:
   uv run pytest -s {{params}}
 
 build:
-  uv build --wheel
+  uv build
+
+check: build
+  uv run twine check dist/*
+
+publish: build
+  uv run twine upload dist/*
+
+publish-test: build
+  uv run twine upload --repository testpypi dist/*
 
 version:
  uv run python -c 'import mead; print(mead.__version__);'
