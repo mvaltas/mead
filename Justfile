@@ -8,8 +8,12 @@ lint:
 format:
  uv run black .
 
+install:
+  uv sync --all-extras
+
 clean:
   rm -f dist/mead*.whl
+  rm -f dist/mead*.tar.gz
 
 test *params:
   uv run pytest -s {{params}}
@@ -23,7 +27,7 @@ check: build
 publish: build
   uv run twine upload dist/*
 
-publish-test: build
+publish-test: clean build test
   uv run twine upload --repository testpypi dist/*
 
 version:

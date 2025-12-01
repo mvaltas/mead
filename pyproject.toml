@@ -1,6 +1,6 @@
 [project]
 name = "mead"
-version = "0.1.3"
+version = "0.1.4"
 description = "MEAD: Modeling Environment for Analysis of Dynamics"
 readme = "README.md"
 requires-python = ">=3.11"
