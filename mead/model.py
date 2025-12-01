@@ -203,8 +203,9 @@ class Model:
         """
         fig, ax1 = plt.subplots(figsize=(12, 7))
 
-        # Determine columns to plot
         if columns is None:
+            columns = [stock for stock in self.stocks.keys()]
+        elif not columns:
             if isinstance(results, dict):
                 first_df = next(iter(results.values()))
                 columns = [col for col in first_df.columns if col != "time"]
