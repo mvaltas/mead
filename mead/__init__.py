@@ -1,5 +1,6 @@
 import importlib.metadata
 
+from .inspect import Inspect
 from .core import Element, Constant, Equation, Auxiliary, Time, Function
 from .components import (
     Delay,
@@ -50,4 +51,5 @@ __all__ = [
     "Scenario",
     "ScenarioRunner",
     "Experiment",
+    "Inspect",
 ]
