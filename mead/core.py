@@ -1,3 +1,4 @@
+from __future__ import annotations
 import inspect
 from typing import TYPE_CHECKING, Any, Self
 from collections.abc import Callable
