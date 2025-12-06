@@ -1,7 +1,7 @@
 from .components import Element
 from typing import TypeVar, Generic
 
-T = TypeVar("T", bound="Element")
+T = TypeVar("T", bound=Element)
 
 
 class InspectConfig:
@@ -19,6 +19,7 @@ class InspectConfig:
 
 
 class InspectMeta(type):
+
     def __instancecheck__(cls, obj):
         if isinstance(obj, Inspect):
             return isinstance(obj._element, cls)

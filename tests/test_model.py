@@ -425,10 +425,6 @@ def test_ramp_element_in_model():
     assert results.loc[6, "ramp_output"] == pytest.approx(35)
 
 
-import os  # Import os for file cleanup
-from pathlib import Path  # Import Path for file operations
-
-
 def test_initial_element_in_model():
     from mead.components import Initial  # Import Initial for this test
 
@@ -473,10 +469,6 @@ def test_initial_element_in_model():
 
 
 def test_model_plot_method(tmp_path):
-    # This test requires matplotlib and will generate a file.
-    # tmp_path is a pytest fixture for a temporary directory.
-
-    # 1. Run a simple model
     model = Model("plot_test", dt=1.0)
     population = Stock("population", 100)
     birth_rate = Constant("birth_rate", 0.1)
@@ -486,13 +478,33 @@ def test_model_plot_method(tmp_path):
     model.add(population, birth_rate, births)
     results = model.run(duration=3)
 
-    # 2. Call the plot method with save_path specified
     plot_file = tmp_path / "test_plot.png"
     model.plot(results, columns=["population"], save_path=plot_file)
 
-    # 3. Assert that the file exists at the specified path
     assert plot_file.exists()
     assert plot_file.is_file()
 
-    # 4. Clean up the created file (pytest's tmp_path handles directory cleanup)
-    # No explicit cleanup needed for the file as tmp_path will clean up the directory.
+
+def test_model_can_be_extended_from_another_model():
+    parent_model = Model("parent_model", dt=1)
+    parent_stock = Stock("parent_stock")
+    parent_stock.add_inflow(Flow("parent_rate", Constant("base_rate", 1.0)))
+    parent_model.add(parent_stock)
+
+    child_model = Model("child_model", dt=1)
+    child_model.extend(parent_model)
+
+    child_stock = Stock("child_stock")
+    child_stock.add_inflow(Flow("child_inflow", child_model.stocks["parent_stock"] * 2))
+    child_model.add(child_stock)
+
+    results = child_model.run(duration=5)
+
+    assert results.loc[0, "child_stock"] == 0  # parent = 0, child(0) -> 0 * 2 = 0
+    assert results.loc[1, "child_stock"] == 0  # parent = 0 -> 1, child(0) + 0 * 2 = 0
+    assert results.loc[2, "child_stock"] == 2  # parent = 1 -> 2, child(0) + 1 * 2 = 2
+    assert results.loc[3, "child_stock"] == 6  # parent = 2 -> 3, child(2) + 2 * 2 = 6
+    assert results.loc[4, "child_stock"] == 12  # parent = 3 -> 4, child(6) + 3 * 2 = 12
+    assert (
+        results.loc[5, "child_stock"] == 20
+    )  # parent = 4 -> 5, child(12) + 4 * 2 = 20

@@ -52,6 +52,11 @@ class Model:
                 setattr(result, k, deepcopy(v, memo))
         return result
 
+    def extend(self, model: Model):
+        source_model = deepcopy(model)
+        self.stocks.update(source_model.stocks)
+        self.elements.update(source_model.elements)
+
     def add(self, *elements: Element):
         """Adds one or more elements to the model.
 
