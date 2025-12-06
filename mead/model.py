@@ -181,7 +181,10 @@ class Model:
         return pd.DataFrame(results_list).set_index("time")
 
     def __str__(self):
-        return f"Model name={self.name!r}\nStocks {self.stocks!r}\nElements {self.elements!r}"
+        return f"Model(name={self.name})"
+
+    def __repr__(self):
+        return f"Model(name={self.name!r}, stocks={self.stocks!r}, elements={self.elements!r})"
 
     def plot(
         self,

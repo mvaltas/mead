@@ -7,7 +7,7 @@ T = TypeVar("T", bound="Element")
 class InspectConfig:
     def __init__(self):
         self.show_attrs = set()
-        self.hide_attrs = set()
+        self.hide_attrs = {"model"}
         self.show_all = False
         self.hide_all = False
 
@@ -52,6 +52,7 @@ class Inspect(Generic[T], metaclass=InspectMeta):
             def wrapper(*args, **kwargs):
                 result = attr(*args, **kwargs)
                 if self._should_show(name):
+                    # method needs to be on show_attrs to be display call
                     print(f"{self!r}: {name}({args}, {kwargs}) -> {result}")
                 return result
 
