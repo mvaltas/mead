@@ -56,7 +56,6 @@ class Inspect(Generic[T], metaclass=InspectMeta):
                 return result
 
             return wrapper
-
         return attr
 
     def _render(self):

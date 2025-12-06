@@ -1,7 +1,5 @@
 default: test
 
-
-
 lint:
  uv run black . --check --diff --color
 
