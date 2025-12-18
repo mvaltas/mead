@@ -27,3 +27,6 @@ class Stock(Element):
         """Add a flow that decreases this stock."""
         self.outflows.append(flow)
         return self
+
+    def __repr__(self):
+        return f"Stock({self.name=!r}, {self.inflows=!r}, {self.outflows=!r})"

@@ -12,6 +12,8 @@ min_output = Min("min", stock_a, 7)
 # max will match stock a until goes bellow 13, than it will stay at 13
 max_output = Max("max", stock_a, 13)
 
+print(min_output)
+
 model.add(stock_a, min_output, max_output)
 
 results = model.run(duration=20)

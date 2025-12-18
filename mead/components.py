@@ -37,7 +37,7 @@ class Delay(Element):
         return [self.input, self.delay_time]
 
     def __repr__(self) -> str:
-        return f"Delay(name={self.name!r}, input={self.input.name!r}, delay_time={self.delay_time!r})"
+        return f"Delay({self.name=!r}, {self.input.name=!r}, {self.delay_time=!r})"
 
 
 class Smooth(Element):
@@ -86,7 +86,7 @@ class Smooth(Element):
         return [self.target_value, self.smoothing_time, self.initial_value]
 
     def __repr__(self) -> str:
-        return f"Smooth(name={self.name!r}, input_element={self.target_value.name!r}, smoothing_time={self.smoothing_time.name!r}, initial_value={self.initial_value})"
+        return f"Smooth({self.name=!r}, {self.target_value.name=!r}, {self.smoothing_time.name=!r}, {self.initial_value=!r})"
 
 
 class Table(Element):
@@ -134,7 +134,7 @@ class Table(Element):
         return [self.input_element]
 
     def __repr__(self) -> str:
-        return f"Table(name={self.name!r}, input_element={self.input_element.name!r}, points={self.points!r})"
+        return f"Table({self.name=!r}, {self.input_element.name=!r}, {self.points=!r})"
 
 
 class IfThenElse(Element):
@@ -168,8 +168,8 @@ class IfThenElse(Element):
 
     def __repr__(self) -> str:
         return (
-            f"IfThenElse(name={self.name!r}, condition={self.condition.name!r}, "
-            f"true_element={self.true_element.name!r}, false_element={self.false_element.name!r})"
+            f"IfThenElse({self.name=!r}, {self.condition.name=!r}, "
+            f"{self.true_element.name=!r}, {self.false_element.name=!r})"
         )
 
 
@@ -192,8 +192,7 @@ class Min(Element):
         return self.input_elements
 
     def __repr__(self) -> str:
-        input_names = ", ".join(el.name for el in self.input_elements)
-        return f"Min(name={self.name!r}, inputs=[{input_names}])"
+        return f"Min({self.name=!r}, {self.input_elements=!r})"
 
 
 class Max(Element):
@@ -215,8 +214,7 @@ class Max(Element):
         return self.input_elements
 
     def __repr__(self) -> str:
-        input_names = ", ".join(el.name for el in self.input_elements)
-        return f"Max(name={self.name!r}, inputs=[{input_names}])"
+        return f"Max({self.name=!r}, {self.input_elements=!r})"
 
 
 class Pulse(Element):
@@ -252,8 +250,8 @@ class Pulse(Element):
 
     def __repr__(self) -> str:
         return (
-            f"Pulse(name={self.name!r}, start_time={self.start_time.name!r}, "
-            f"duration={self.duration.name!r}, magnitude={self.magnitude.name!r})"
+            f"Pulse({self.name=!r}, {self.start_time.name=!r}, "
+            f"{self.duration.name=!r}, {self.magnitude.name=!r})"
         )
 
 
@@ -289,8 +287,8 @@ class Step(Element):
 
     def __repr__(self) -> str:
         return (
-            f"Step(name={self.name!r}, start_time={self.start_time.name!r}, "
-            f"before_value={self.before_value.name!r}, after_value={self.after_value.name!r})"
+            f"Step({self.name=!r}, {self.start_time.name=!r}, "
+            f"{self.before_value.name=!r}, {self.after_value.name=!r})"
         )
 
 
@@ -333,9 +331,9 @@ class Ramp(Element):
 
     def __repr__(self) -> str:
         return (
-            f"Ramp(name={self.name!r}, start_time={self.start_time.name!r}, "
-            f"end_time={self.end_time.name!r}, slope={self.slope.name!r}, "
-            f"initial_value={self.initial_value.name!r})"
+            f"Ramp({self.name=!r}, {self.start_time.name=!r}, "
+            f"{self.end_time.name=!r}, {self.slope.name=!r}, "
+            f"{self.initial_value.name=!r})"
         )
 
 
@@ -390,8 +388,8 @@ class Delay2(Element):
 
     def __repr__(self) -> str:
         return (
-            f"Delay2(name={self.name!r}, input_element={self.input_element.name!r}, "
-            f"delay_time={self.delay_time.name!r}, initial_value={self.initial_value.name!r})"
+            f"Delay2({self.name=!r}, {self.input_element.name=!r}, "
+            f"{self.delay_time.name=!r}, {self.initial_value.name=!r})"
         )
 
 
@@ -453,8 +451,8 @@ class Delay3(Element):
 
     def __repr__(self) -> str:
         return (
-            f"Delay3(name={self.name!r}, input_element={self.input_element.name!r}, "
-            f"delay_time={self.delay_time.name!r}, initial_value={self.initial_value.name!r})"
+            f"Delay3({self.name=!r}, {self.input_element.name=!r}, "
+            f"{self.delay_time.name=!r}, {self.initial_value.name=!r})"
         )
 
 
@@ -489,7 +487,7 @@ class Initial(Element):
         return [self.input_element]
 
     def __repr__(self) -> str:
-        return f"Initial(name={self.name!r}, input_element={self.input_element.name!r})"
+        return f"Initial({self.name=!r}, {self.input_element.name=!r})"
 
 
 class Policy(Element):
@@ -536,7 +534,7 @@ class Policy(Element):
         return [self.condition, self.effect]
 
     def __repr__(self) -> str:
-        return f"Policy(name={self.name!r}, condition={self.condition!r}, effect={self.effect!r}, apply={self.apply!r})"
+        return f"Policy({self.name=!r}, {self.condition=!r}, {self.effect=!r}, {self.apply=!r})"
 
 
 class Flow(Element):
@@ -562,4 +560,4 @@ class Flow(Element):
         return deps
 
     def __repr__(self) -> str:
-        return f"Flow(name={self.name!r}, equation={self.equation!r})"
+        return f"Flow({self.name!r}, {self.equation=!r})"

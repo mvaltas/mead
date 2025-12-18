@@ -106,7 +106,7 @@ def test_delay():
         input_stock.add_inflow(
             m.Flow("flow", m.IfThenElse("inflow", m.Time("time") - 2, 40, 0))
         )  # Inflow starts at t=2
-        m.Delay("delayed_input", input_stock, delay_time=2)
+        d = m.Delay("delayed_input", input_stock, delay_time=2)
 
     results = model.run(duration=5)
     # The delayed value should be the initial value of the stock for the first 2s

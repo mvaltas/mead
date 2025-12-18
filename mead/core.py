@@ -98,7 +98,7 @@ class Constant(Element):
         return self.value
 
     def __repr__(self) -> str:
-        return f"Constant(name={self.name!r}, value={self.value!r})"
+        return f"Constant({self.name=!r}, {self.value=!r})"
 
 
 class Function(Element):
